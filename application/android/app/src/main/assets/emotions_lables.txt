@@ -1,0 +1,6 @@
+Ahegao
+Angry
+Happy
+Neutral
+Sad
+Surprise
