@@ -42,6 +42,7 @@ def error_analysis(df, predicted):
             shutil.copy(i, 'error_ims/{0}_{1}'.format(label, tmp))
     dictionary_labels = dict(df['label'].value_counts())
     dictionary_labels = dict([(i, dictionary_labels.get(i, 0)) for i in set(labels)])
+    seaborn.set()
     plt.figure(figsize=(14, 12))
     plt.title('Distribution of errors in overall dataset')
     plt.pie(list(dictionary_labels.values()), labels=list(dictionary_labels.keys()),
