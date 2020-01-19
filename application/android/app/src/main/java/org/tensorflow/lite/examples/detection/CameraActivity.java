@@ -89,9 +89,9 @@ public abstract class CameraActivity extends AppCompatActivity
 
     protected TextView frameValueTextView, cropValueTextView, inferenceTimeTextView;
     protected ImageView bottomSheetArrowImageView;
-    private ImageView plusImageView, minusImageView, percentPlusImageView, percentMinusImageView;
+    private ImageView plusImageView, minusImageView, percentCPlusImageView, percentCMinusImageView, percentDPlusImageView, percentDMinusImageView;
     private SwitchCompat apiSwitchCompat;
-    private TextView threadsTextView, percentsTextView;
+    private TextView threadsTextView, percentsClassifTextView, percentsDetectionTextView;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -119,9 +119,14 @@ public abstract class CameraActivity extends AppCompatActivity
         sheetBehavior = BottomSheetBehavior.from(bottomSheetLayout);
         bottomSheetArrowImageView = findViewById(R.id.bottom_sheet_arrow);
 
-        percentsTextView = findViewById(R.id.percents);
-        percentPlusImageView = findViewById(R.id.p_plus);
-        percentMinusImageView = findViewById(R.id.p_minus);
+        percentsClassifTextView = findViewById(R.id.c_percents);
+        percentsDetectionTextView = findViewById(R.id.d_percents);
+        percentCPlusImageView = findViewById(R.id.p_c_plus);
+        percentDPlusImageView = findViewById(R.id.p_d_plus);
+        percentCMinusImageView = findViewById(R.id.p_c_minus);
+        percentDMinusImageView = findViewById(R.id.p_d_minus);
+        findViewById(R.id.btn_change_camera).setOnClickListener(this);
+
 
         ViewTreeObserver vto = gestureLayout.getViewTreeObserver();
         vto.addOnGlobalLayoutListener(
@@ -176,9 +181,11 @@ public abstract class CameraActivity extends AppCompatActivity
         apiSwitchCompat.setOnCheckedChangeListener(this);
 
         plusImageView.setOnClickListener(this);
-        percentPlusImageView.setOnClickListener(this);
+        percentCPlusImageView.setOnClickListener(this);
+        percentDPlusImageView.setOnClickListener(this);
         minusImageView.setOnClickListener(this);
-        percentMinusImageView.setOnClickListener(this);
+        percentCMinusImageView.setOnClickListener(this);
+        percentDMinusImageView.setOnClickListener(this);
     }
 
     protected int[] getRgbBytes() {
@@ -403,7 +410,7 @@ public abstract class CameraActivity extends AppCompatActivity
         return requiredLevel <= deviceLevel;
     }
 
-    private String chooseCamera() {
+    private String chooseCamera(boolean front) {
         final CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try {
             for (final String cameraId : manager.getCameraIdList()) {
@@ -411,7 +418,10 @@ public abstract class CameraActivity extends AppCompatActivity
 
                 // We don't use a front facing camera in this sample.
                 final Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
-                if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT) {
+                if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT && front) {
+                    continue;
+                }
+                if (facing != null && facing == CameraCharacteristics.LENS_FACING_BACK && !front) {
                     continue;
                 }
 
@@ -440,7 +450,7 @@ public abstract class CameraActivity extends AppCompatActivity
     }
 
     protected void setFragment() {
-        String cameraId = chooseCamera();
+        String cameraId = chooseCamera(Settings.getInstance().isIsfront());
 
         Fragment fragment;
         if (useCamera2API) {
@@ -513,6 +523,11 @@ public abstract class CameraActivity extends AppCompatActivity
 
     @Override
     public void onClick(View v) {
+        if (v.getId() == R.id.btn_change_camera) {
+            setFragment();
+            Settings.getInstance().setIsfront(!Settings.getInstance().isIsfront());
+            return;
+        }
         if (v.getId() == R.id.plus) {
             String threads = threadsTextView.getText().toString().trim();
             int numThreads = Integer.parseInt(threads);
@@ -530,24 +545,43 @@ public abstract class CameraActivity extends AppCompatActivity
             threadsTextView.setText(String.valueOf(numThreads));
             setNumThreads(numThreads);
         }
-        if (v.getId() == R.id.p_plus) {
-            String threads = percentsTextView.getText().toString().trim();
+        if (v.getId() == R.id.p_c_plus) {
+            String threads = percentsClassifTextView.getText().toString().trim();
             int percents = Integer.parseInt(threads);
             if (percents == 100) {
                 return;
             }
             percents += 1;
-            percentsTextView.setText(String.valueOf(percents));
-            Settings.getInstance().setMinPersentToShow(percents);
-        } else if (v.getId() == R.id.p_minus) {
-            String percent = percentsTextView.getText().toString().trim();
+            percentsClassifTextView.setText(String.valueOf(percents));
+            Settings.getInstance().setMinClassificationPercentToShow(percents);
+        } else if (v.getId() == R.id.p_c_minus) {
+            String percent = percentsClassifTextView.getText().toString().trim();
             int percents = Integer.parseInt(percent);
             if (percents == 0) {
                 return;
             }
             percents -= 1;
-            percentsTextView.setText(String.valueOf(percents));
-            Settings.getInstance().setMinPersentToShow(percents);
+            percentsClassifTextView.setText(String.valueOf(percents));
+            Settings.getInstance().setMinClassificationPercentToShow(percents);
+        }
+        if (v.getId() == R.id.p_d_plus) {
+            String threads = percentsDetectionTextView.getText().toString().trim();
+            int percents = Integer.parseInt(threads);
+            if (percents == 100) {
+                return;
+            }
+            percents += 1;
+            percentsDetectionTextView.setText(String.valueOf(percents));
+            Settings.getInstance().setMinDetectionPercentToShow(percents);
+        } else if (v.getId() == R.id.p_d_minus) {
+            String percent = percentsDetectionTextView.getText().toString().trim();
+            int percents = Integer.parseInt(percent);
+            if (percents == 0) {
+                return;
+            }
+            percents -= 1;
+            percentsDetectionTextView.setText(String.valueOf(percents));
+            Settings.getInstance().setMinDetectionPercentToShow(percents);
         }
     }
 
