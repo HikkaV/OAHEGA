@@ -536,7 +536,7 @@ public abstract class CameraActivity extends AppCompatActivity
             if (percents == 100) {
                 return;
             }
-            percents += 10;
+            percents += 1;
             percentsTextView.setText(String.valueOf(percents));
             Settings.getInstance().setMinPersentToShow(percents);
         } else if (v.getId() == R.id.p_minus) {
@@ -545,7 +545,7 @@ public abstract class CameraActivity extends AppCompatActivity
             if (percents == 0) {
                 return;
             }
-            percents -= 10;
+            percents -= 1;
             percentsTextView.setText(String.valueOf(percents));
             Settings.getInstance().setMinPersentToShow(percents);
         }
