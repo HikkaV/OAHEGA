@@ -58,6 +58,7 @@ import java.nio.ByteBuffer;
 
 import org.tensorflow.lite.examples.detection.env.ImageUtils;
 import org.tensorflow.lite.examples.detection.env.Logger;
+import org.tensorflow.lite.examples.detection.utils.DataHelper;
 import org.tensorflow.lite.examples.detection.utils.Settings;
 
 public abstract class CameraActivity extends AppCompatActivity
@@ -76,7 +77,7 @@ public abstract class CameraActivity extends AppCompatActivity
     private Handler handler;
     private HandlerThread handlerThread;
     private boolean useCamera2API;
-    private boolean isProcessingFrame = false;
+    protected boolean isProcessingFrame = false;
     private byte[][] yuvBytes = new byte[3][];
     private int[] rgbBytes = null;
     private int yRowStride;
@@ -91,7 +92,7 @@ public abstract class CameraActivity extends AppCompatActivity
     protected ImageView bottomSheetArrowImageView;
     private ImageView plusImageView, minusImageView, percentCPlusImageView, percentCMinusImageView, percentDPlusImageView, percentDMinusImageView;
     private SwitchCompat apiSwitchCompat;
-    private TextView threadsTextView, percentsClassifTextView, percentsDetectionTextView;
+    private TextView threadsTextView, percentsClassifTextView, percentsDetectionTextView,avarageTextView;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -121,10 +122,13 @@ public abstract class CameraActivity extends AppCompatActivity
 
         percentsClassifTextView = findViewById(R.id.c_percents);
         percentsDetectionTextView = findViewById(R.id.d_percents);
+        avarageTextView = findViewById(R.id.avarage_percents);
         percentCPlusImageView = findViewById(R.id.p_c_plus);
         percentDPlusImageView = findViewById(R.id.p_d_plus);
         percentCMinusImageView = findViewById(R.id.p_c_minus);
         percentDMinusImageView = findViewById(R.id.p_d_minus);
+        findViewById(R.id.avarage_minus).setOnClickListener(this);
+        findViewById(R.id.avarage_plus).setOnClickListener(this);
         findViewById(R.id.btn_change_camera).setOnClickListener(this);
 
 
@@ -225,9 +229,10 @@ public abstract class CameraActivity extends AppCompatActivity
             return;
         }
 
-        isProcessingFrame = true;
         yuvBytes[0] = bytes;
         yRowStride = previewWidth;
+        // todo save  new ready bitmap
+
 
         imageConverter =
                 new Runnable() {
@@ -245,7 +250,9 @@ public abstract class CameraActivity extends AppCompatActivity
                         isProcessingFrame = false;
                     }
                 };
-        processImage();
+        // todo save  new ready bitmap
+//        processImage(); // todo remove
+        newBitmap();
     }
 
     /**
@@ -267,11 +274,7 @@ public abstract class CameraActivity extends AppCompatActivity
                 return;
             }
 
-            if (isProcessingFrame) {
-                image.close();
-                return;
-            }
-            isProcessingFrame = true;
+
             Trace.beginSection("imageAvailable");
             final Plane[] planes = image.getPlanes();
             fillBytes(planes, yuvBytes);
@@ -305,7 +308,11 @@ public abstract class CameraActivity extends AppCompatActivity
                         }
                     };
 
-            processImage();
+            // todo save  new ready bitmap
+//            processImage();// todo remove
+            image.close();
+            newBitmap();
+
         } catch (final Exception e) {
             LOGGER.e(e, "Exception!");
             Trace.endSection();
@@ -583,6 +590,25 @@ public abstract class CameraActivity extends AppCompatActivity
             percentsDetectionTextView.setText(String.valueOf(percents));
             Settings.getInstance().setMinDetectionPercentToShow(percents);
         }
+        if (v.getId() == R.id.avarage_plus) {
+            String threads = avarageTextView.getText().toString().trim();
+            int percents = Integer.parseInt(threads);
+            if (percents == 100) {
+                return;
+            }
+            percents += 1;
+            avarageTextView.setText(String.valueOf(percents));
+            Settings.getInstance().setNumOfAvarage(percents);
+        } else if (v.getId() == R.id.avarage_minus) {
+            String percent = avarageTextView.getText().toString().trim();
+            int percents = Integer.parseInt(percent);
+            if (percents == 0) {
+                return;
+            }
+            percents -= 1;
+            avarageTextView.setText(String.valueOf(percents));
+            Settings.getInstance().setNumOfAvarage(percents);
+        }
     }
 
     protected void showFrameInfo(String frameInfo) {
@@ -608,4 +634,7 @@ public abstract class CameraActivity extends AppCompatActivity
     protected abstract void setNumThreads(int numThreads);
 
     protected abstract void setUseNNAPI(boolean isChecked);
+    protected abstract void startProcess();
+    protected abstract void newBitmap();
+
 }

@@ -236,7 +236,7 @@ public abstract class Classifier {
   }
 
   /** Runs inference and returns the classification results. */
-  public List<Recognition> recognizeImage(final Bitmap bitmap, int sensorOrientation) {
+  public ArrayList<Recognition> recognizeImage(final Bitmap bitmap, int sensorOrientation) {
     // Logs this method so that it can be analyzed with systrace.
     Trace.beginSection("recognizeImage");
 
@@ -312,7 +312,7 @@ public abstract class Classifier {
   }
 
   /** Gets the top-k results. */
-  private static List<Recognition> getTopKProbability(Map<String, Float> labelProb) {
+  private static ArrayList<Recognition> getTopKProbability(Map<String, Float> labelProb) {
     // Find the best classifications.
     PriorityQueue<Recognition> pq =
         new PriorityQueue<>(

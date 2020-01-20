@@ -76,7 +76,6 @@
     </LinearLayout>
 
 
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -151,6 +150,7 @@
                 android:src="@drawable/ic_baseline_add" />
         </LinearLayout>
     </RelativeLayout>
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -196,7 +196,8 @@
                 android:src="@drawable/ic_baseline_add" />
         </LinearLayout>
     </RelativeLayout>
- <RelativeLayout
+
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
@@ -241,14 +242,59 @@
                 android:src="@drawable/ic_baseline_add" />
         </LinearLayout>
     </RelativeLayout>
-<Button
-    android:id="@+id/btn_change_camera"
-    android:text="change camera"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    >
 
-</Button>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Avarage"
+            android:textColor="@android:color/black" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:background="@drawable/rectangle"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="4dp">
+
+            <ImageView
+                android:id="@+id/avarage_minus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_baseline_remove" />
+            <TextView
+                android:id="@+id/avarage_percents"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:text="1"
+                android:textColor="@android:color/black"
+                android:textSize="14sp" />
+            <ImageView
+                android:id="@+id/avarage_plus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_baseline_add" />
+        </LinearLayout>
+    </RelativeLayout>
+
+    <Button
+        android:id="@+id/btn_change_camera"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="change camera">
+
+    </Button>
+
     <View
         android:layout_width="match_parent"
         android:layout_height="1px"
