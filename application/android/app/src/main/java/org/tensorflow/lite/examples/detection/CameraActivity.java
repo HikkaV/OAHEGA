@@ -537,8 +537,8 @@ public abstract class CameraActivity extends AppCompatActivity
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.btn_change_camera) {
-            setFragment();
             Settings.getInstance().setIsfront(!Settings.getInstance().isIsfront());
+            setFragment();
             return;
         }
         if (v.getId() == R.id.plus) {

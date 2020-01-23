@@ -34,6 +34,8 @@ import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -175,6 +177,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         tracker.setFrameConfiguration(previewWidth, previewHeight, sensorOrientation);
     }
 
+    {
 //    @Override
 //    protected void processImage() {
 //        ++timestamp;
@@ -298,6 +301,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 //                    }
 //                });
 //    }
+    } // last logic
 
     @Override
     protected int getLayoutId() {
@@ -366,11 +370,11 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         imageSizeY = classifier.getImageSizeY();
     }
 
-    private List<Recognition> detectFaces(Bitmap bitmap) {
+    private List<Recognition> detectFaces(Bitmap bitmap) { // return list of faces
         List<Recognition> detections = detector.recognizeImage(bitmap);
         List<Recognition> detectionsResult = new ArrayList<>();
         for (Recognition detection : detections) {
-            if (detection.getTitle().equals("face") && (detection.getConfidence() * 100) > 30) { // todo min detect percent
+            if (detection.getTitle().equals("face")) {
                 detectionsResult.add(detection);
             }
         }
@@ -383,20 +387,27 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         ArrayList<ArrayList<Recognition>> mainList = new ArrayList<>();
         for (Bitmap startBitmap : startBitmaps) { // for every bitmap
             List<Recognition> detectResults = detectFaces(cropBitmapDetection(startBitmap));
+            ArrayList<Recognition> detects = new ArrayList<>();
+
             for (Recognition detectResult : detectResults) { // for every detection
                 if (detectResult.getConfidence() > Settings.getInstance().getMinDetectionPercentToShow() / 100.0) {
                     ArrayList<Recognition> classificationResults = classifier.recognizeImage(cropBitmapClassification(detectResult, startBitmap), sensorOrientation);
-                    ArrayList<Recognition> classifResults = new ArrayList<>();
+                    ArrayList<Recognition> classifs = new ArrayList<>();
                     for (Recognition clasiifResult : classificationResults) { // for every classification
                         if ((clasiifResult.getConfidence() * 100) > Settings.getInstance().getMinClassificationPercentToShow()) {
                             clasiifResult.setLocation(detectResult.getLocation());
-                            classifResults.add(clasiifResult);
+                            classifs.add(clasiifResult);
                         }
                     }
-                    mainList.add(classifResults);
+                    if (!classifs.isEmpty()) {
+                        detects.add(getRec(classifs));
+                    }
                 }
+                mainList.add(detects);
             }
         }
+
+
         ArrayList<Recognition> results = getResultsForShow(mainList);
         if (results == null) {
             readyForNextImage();
@@ -458,7 +469,46 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     }
 
     private ArrayList<Recognition> getResultsForShow(ArrayList<ArrayList<Recognition>> mainList) {
-        return mainList.isEmpty() ? null : mainList.get(0); // todo calculation of average
+        ArrayList<Recognition> results = new ArrayList<>();
+        if (mainList.isEmpty()) {
+            return results;
+        }
+        int maxDetectionsOnBitmap = mainList.get(0).size();
+        for (int i = 0; i < mainList.size(); i++) {
+            if (maxDetectionsOnBitmap < mainList.get(i).size()) {
+                maxDetectionsOnBitmap = mainList.get(i).size();
+            }
+        }
+        for (int i = 0; i < maxDetectionsOnBitmap; i++) {
+            HashMap<String, Float> detects = new HashMap<>();
+            if (!mainList.get(0).isEmpty()) {
+                Recognition recognition = mainList.get(0).get(0);
+
+                for (ArrayList<Recognition> recognitions : mainList)
+                    if (recognitions.size() > i) {
+                        recognition = recognitions.get(i);
+                        if (detects.containsKey(recognition.getTitle())) {
+                            detects.put(recognition.getTitle(), detects.get(recognition.getTitle()) + recognition.getConfidence() * 100);
+                        } else {
+                            detects.put(recognition.getTitle(), recognition.getConfidence());
+                        }
+                    }
+                String maxKey = "";
+                Float maxValue = 0.0F;
+                for (
+                        String key : detects.keySet()) {
+                    if (maxValue < ((detects.get(key)) / mainList.size())) {
+                        maxValue = (detects.get(key)) / mainList.size();
+                        maxKey = key;
+                    }
+
+                    recognition.setConfidence(maxValue / 100);
+                    recognition.setTitle(maxKey);
+                    results.add(recognition);
+                }
+            }
+        }
+        return results; // todo calculation of average
     }
 
     private Bitmap cropBitmapClassification(Recognition detectResult, Bitmap startBitmap) {
@@ -498,7 +548,14 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     }
 
     private Bitmap cropBitmapDetection(Bitmap startBitmap) {
-        return Bitmap.createScaledBitmap(startBitmap, 300, 300, false);
+        if (!Settings.getInstance().isIsfront()) {
+            Matrix matrix = new Matrix();
+            matrix.preScale(-1, 1);
+            return Bitmap.createBitmap(startBitmap, 0, 0, startBitmap.getWidth(),
+                    startBitmap.getHeight(), matrix, false);
+        } else {
+            return Bitmap.createScaledBitmap(startBitmap, 300, 300, false);
+        }
     }
 
     @Override
