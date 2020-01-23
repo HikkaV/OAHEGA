@@ -92,7 +92,7 @@ public abstract class CameraActivity extends AppCompatActivity
     protected ImageView bottomSheetArrowImageView;
     private ImageView plusImageView, minusImageView, percentCPlusImageView, percentCMinusImageView, percentDPlusImageView, percentDMinusImageView;
     private SwitchCompat apiSwitchCompat;
-    private TextView threadsTextView, percentsClassifTextView, percentsDetectionTextView,avarageTextView;
+    private TextView threadsTextView, percentsClassifTextView, percentsDetectionTextView, avarageTextView;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -269,7 +269,13 @@ public abstract class CameraActivity extends AppCompatActivity
         }
         try {
             final Image image = reader.acquireLatestImage();
-
+            if (isProcessingFrame) {
+                if (image != null) {
+                    image.close();
+                }
+                LOGGER.w("Dropping frame!");
+                return;
+            }
             if (image == null) {
                 return;
             }
@@ -634,7 +640,9 @@ public abstract class CameraActivity extends AppCompatActivity
     protected abstract void setNumThreads(int numThreads);
 
     protected abstract void setUseNNAPI(boolean isChecked);
+
     protected abstract void startProcess();
+
     protected abstract void newBitmap();
 
 }

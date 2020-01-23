@@ -380,7 +380,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
             for (Classifier.Recognition detectResult : detectResults) { // todo min detection percent
                 ArrayList<org.tensorflow.lite.examples.detection.tflite.clasification.Classifier.Recognition> classificationResults = classifier.recognizeImage(cropBitmapClassification(detectResult, startBitmap), sensorOrientation);
                 ArrayList<org.tensorflow.lite.examples.detection.tflite.clasification.Classifier.Recognition> classifResults = new ArrayList<>();
-                for(org.tensorflow.lite.examples.detection.tflite.clasification.Classifier.Recognition clasiifResult : classificationResults) {
+                for (org.tensorflow.lite.examples.detection.tflite.clasification.Classifier.Recognition clasiifResult : classificationResults) {
                     if ((clasiifResult.getConfidence() * 100) > Settings.getInstance().getMinClassificationPercentToShow()) {
                         clasiifResult.setLocation(detectResult.getLocation());
                         classifResults.add(clasiifResult);
@@ -390,6 +390,12 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
             }
         }
         ArrayList<org.tensorflow.lite.examples.detection.tflite.clasification.Classifier.Recognition> results = getResultsForShow(mainList);
+        if (results == null) {
+            readyForNextImage();
+            isProcessingFrame = false;
+            DataHelper.getInstance().getListOne().clear();
+            return;
+        }
         showResults(results, startBitmaps.get(0));
     }
 
@@ -403,19 +409,24 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
         final List<org.tensorflow.lite.examples.detection.tflite.clasification.Classifier.Recognition> mappedRecognitions =
                 new LinkedList<>();
-
+        if (results.isEmpty()) {
+            readyForNextImage();
+            isProcessingFrame = false;
+            DataHelper.getInstance().getListOne().clear();
+            return;
+        }
         org.tensorflow.lite.examples.detection.tflite.clasification.Classifier.Recognition result = getRec(results);
 //        for (final org.tensorflow.lite.examples.detection.tflite.clasification.Classifier.Recognition result : results) {
-            final RectF location = result.getLocation();
-            if (location != null
-                    && result.getConfidence() > (Settings.getInstance().getMinClassificationPercentToShow() / 100.0)) {
-                canvas.drawRect(location, paint);
+        final RectF location = result.getLocation();
+        if (location != null
+                && result.getConfidence() > (Settings.getInstance().getMinClassificationPercentToShow() / 100.0)) {
+            canvas.drawRect(location, paint);
 
-                cropToFrameTransform.mapRect(location);
+            cropToFrameTransform.mapRect(location);
 
-                result.setLocation(location);
-                mappedRecognitions.add(result);
-            }
+            result.setLocation(location);
+            mappedRecognitions.add(result);
+        }
 //        }
 
         tracker.trackResults(mappedRecognitions, System.currentTimeMillis());
@@ -439,7 +450,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     }
 
     private ArrayList<org.tensorflow.lite.examples.detection.tflite.clasification.Classifier.Recognition> getResultsForShow(ArrayList<ArrayList<org.tensorflow.lite.examples.detection.tflite.clasification.Classifier.Recognition>> mainList) {
-        return mainList.get(0); // todo calculation of average
+        return mainList.isEmpty() ? null : mainList.get(0); // todo calculation of average
     }
 
     private Bitmap cropBitmapClassification(Classifier.Recognition detectResult, Bitmap startBitmap) {
@@ -489,9 +500,15 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         final Canvas canvas = new Canvas(croppedBitmap);
         canvas.drawBitmap(rgbFrameBitmap, frameToCropTransform, null);
         DataHelper.getInstance().getListOne().add(croppedBitmap);
-        if (DataHelper.getInstance().getListOne().size() >= Settings.getInstance().getNumOfAvarage()) {
+        if (DataHelper.getInstance().getListOne().size() >= Settings.getInstance().getNumOfAvarage() && DataHelper.getInstance().getListOne().size() > 0) {
             isProcessingFrame = true;
-            startProcess();
+            runInBackground(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            startProcess();
+                        }
+                    });
         }
     }
 }
