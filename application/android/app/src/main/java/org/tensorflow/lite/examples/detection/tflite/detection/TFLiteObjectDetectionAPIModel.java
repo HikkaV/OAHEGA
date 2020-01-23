@@ -39,6 +39,7 @@ import java.util.Vector;
 import org.tensorflow.lite.Interpreter;
 import org.tensorflow.lite.examples.detection.BuildConfig;
 import org.tensorflow.lite.examples.detection.env.Logger;
+import org.tensorflow.lite.examples.detection.tflite.Recognition;
 
 /**
  * Wrapper for frozen detection models trained using the Tensorflow Object Detection API:
