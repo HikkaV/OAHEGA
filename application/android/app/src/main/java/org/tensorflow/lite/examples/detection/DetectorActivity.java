@@ -73,7 +73,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     private static final float TEXT_SIZE_DIP = 10;
     OverlayView trackingOverlay;
     private Integer sensorOrientation;
-
+    long startTime;
     private Classifier detector;
 
     private long lastProcessingTimeMs;
@@ -383,6 +383,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
     @Override
     public void startProcess() {
+        startTime = SystemClock.uptimeMillis();
         ArrayList<Bitmap> startBitmaps = DataHelper.getInstance().getListOne();
         ArrayList<ArrayList<Recognition>> mainList = new ArrayList<>();
         for (Bitmap startBitmap : startBitmaps) { // for every bitmap
@@ -452,6 +453,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         trackingOverlay.postInvalidate();
 
         computingDetection = false;
+        lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
 
         Bitmap finalBitmap = bitmap;
         runOnUiThread(
