@@ -251,8 +251,8 @@ public class CameraConnectionFragment extends Fragment {
 
         // Collect the supported resolutions that are at least as big as the preview Surface
         boolean exactSizeFound = false;
-        final List<Size> bigEnough = new ArrayList<Size>();
-        final List<Size> tooSmall = new ArrayList<Size>();
+        final List<Size> bigEnough = new ArrayList<>();
+        final List<Size> tooSmall = new ArrayList<>();
         for (final Size option : choices) {
             if (option.equals(desiredSize)) {
                 // Set the size but don't return yet so that remaining sizes will still be logged.
@@ -303,12 +303,7 @@ public class CameraConnectionFragment extends Fragment {
         final Activity activity = getActivity();
         if (activity != null) {
             activity.runOnUiThread(
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(activity, text, Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                    () -> Toast.makeText(activity, text, Toast.LENGTH_SHORT).show());
         }
     }
 
@@ -320,7 +315,7 @@ public class CameraConnectionFragment extends Fragment {
 
     @Override
     public void onViewCreated(final View view, final Bundle savedInstanceState) {
-        textureView = (AutoFitTextureView) view.findViewById(R.id.texture);
+        textureView = view.findViewById(R.id.texture);
     }
 
     @Override
@@ -614,12 +609,7 @@ public class CameraConnectionFragment extends Fragment {
                     .setMessage(getArguments().getString(ARG_MESSAGE))
                     .setPositiveButton(
                             android.R.string.ok,
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(final DialogInterface dialogInterface, final int i) {
-                                    activity.finish();
-                                }
-                            })
+                            (dialogInterface, i) -> activity.finish())
                     .create();
         }
     }

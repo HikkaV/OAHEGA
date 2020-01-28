@@ -1,9 +1,6 @@
 package org.tensorflow.lite.examples.detection.utils;
 
 import android.graphics.Bitmap;
-
-import org.tensorflow.lite.examples.detection.tflite.clasification.Classifier;
-
 import java.util.ArrayList;
 
 public class DataHelper {

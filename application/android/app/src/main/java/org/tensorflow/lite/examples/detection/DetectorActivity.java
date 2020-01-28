@@ -29,18 +29,15 @@ import android.media.ImageReader.OnImageAvailableListener;
 import android.os.SystemClock;
 import android.util.Size;
 import android.util.TypedValue;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.tensorflow.lite.examples.detection.customview.OverlayView;
-import org.tensorflow.lite.examples.detection.customview.OverlayView.DrawCallback;
 import org.tensorflow.lite.examples.detection.env.BorderedText;
 import org.tensorflow.lite.examples.detection.env.ImageUtils;
 import org.tensorflow.lite.examples.detection.env.Logger;
@@ -65,11 +62,8 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     private static final String TF_OD_API_MODEL_FILE = "face_detect.tflite";
     private static final String TF_OD_API_LABELS_FILE = "file:///android_asset/detection_lables.txt";
     private static final DetectorMode MODE = DetectorMode.TF_OD_API;
-    // Minimum detection confidence to track a detection.
-//    private static final float MINIMUM_CONFIDENCE_TF_OD_API = 0.5f; //todo
     private static final boolean MAINTAIN_ASPECT = false;
     private static final Size DESIRED_PREVIEW_SIZE = new Size(640, 480);
-    private static final boolean SAVE_PREVIEW_BITMAP = false;
     private static final float TEXT_SIZE_DIP = 10;
     OverlayView trackingOverlay;
     private Integer sensorOrientation;
@@ -79,40 +73,20 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     private long lastProcessingTimeMs;
     private Bitmap rgbFrameBitmap = null;
     private Bitmap croppedBitmap = null;
-    private Bitmap cropCopyBitmap = null;
-
-    private boolean computingDetection = false;
-
-    private long timestamp = 0;
 
     private Matrix frameToCropTransform;
     private Matrix cropToFrameTransform;
 
     private MultiBoxTracker tracker;
 
-    private BorderedText borderedText;
-
     private org.tensorflow.lite.examples.detection.tflite.clasification.Classifier classifier;
-    /**
-     * Input image size of the model along x axis.
-     */
-    private int imageSizeX;
-    /**
-     * Input image size of the model along y axis.
-     */
-    private int imageSizeY;
-
-    @Override
-    protected void processImage() {
-
-    }
 
     @Override
     public void onPreviewSizeChosen(final Size size, final int rotation) {
         final float textSizePx =
                 TypedValue.applyDimension(
                         TypedValue.COMPLEX_UNIT_DIP, TEXT_SIZE_DIP, getResources().getDisplayMetrics());
-        borderedText = new BorderedText(textSizePx);
+        BorderedText borderedText = new BorderedText(textSizePx);
         borderedText.setTypeface(Typeface.MONOSPACE);
 
         tracker = new MultiBoxTracker(this);
@@ -164,144 +138,15 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
         trackingOverlay = findViewById(R.id.tracking_overlay);
         trackingOverlay.addCallback(
-                new DrawCallback() {
-                    @Override
-                    public void drawCallback(final Canvas canvas) {
-                        tracker.draw(canvas);
-                        if (isDebug()) {
-                            tracker.drawDebug(canvas);
-                        }
+                canvas -> {
+                    tracker.draw(canvas);
+                    if (isDebug()) {
+                        tracker.drawDebug(canvas);
                     }
                 });
 
         tracker.setFrameConfiguration(previewWidth, previewHeight, sensorOrientation);
     }
-
-    {
-//    @Override
-//    protected void processImage() {
-//        ++timestamp;
-//        final long currTimestamp = timestamp;
-//        trackingOverlay.postInvalidate();
-//        // No mutex needed as this method is not reentrant.
-//        if (computingDetection) {
-//            readyForNextImage();
-//            return;
-//        }
-//        computingDetection = true;
-//        LOGGER.i("Preparing image " + currTimestamp + " for detection in bg thread.");
-//
-//        rgbFrameBitmap.setPixels(getRgbBytes(), 0, previewWidth, 0, 0, previewWidth, previewHeight);
-//
-//        readyForNextImage();
-//
-//        final Canvas canvas = new Canvas(croppedBitmap);
-//        canvas.drawBitmap(rgbFrameBitmap, frameToCropTransform, null);
-//        // For examining the actual TF input.
-//        if (SAVE_PREVIEW_BITMAP) {
-//            ImageUtils.saveBitmap(croppedBitmap);
-//        }
-//
-//        runInBackground(
-//                new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        LOGGER.i("Running detection on image " + currTimestamp);
-//                        final long startTime = SystemClock.uptimeMillis();
-//                        final List<Classifier.Recognition> results = detector.recognizeImage(croppedBitmap); // todo detection on croppeBitmap
-//                        for (Classifier.Recognition result0 : results) {
-//                            if (result0.getTitle().equals("face")
-//                                    && result0.getConfidence() >= (Settings.getInstance().getMinDetectionPercentToShow() / 100.0)) {
-//                                RectF coordinates = result0.getLocation();
-//                                if (coordinates.top < 0) {
-//                                    coordinates.top = 0;
-//                                }
-//                                if (coordinates.left < 0) {
-//                                    coordinates.left = 0;
-//                                }
-//                                if (coordinates.bottom > croppedBitmap.getHeight()) {
-//                                    coordinates.bottom = croppedBitmap.getHeight();
-//                                }
-//                                if (coordinates.right > croppedBitmap.getWidth()) {
-//                                    coordinates.right = croppedBitmap.getWidth();
-//                                }
-//                                int width = Math.round(coordinates.right - coordinates.left) < 0 ? 1 : Math.round(coordinates.right - coordinates.left);
-//                                int height = Math.round(coordinates.bottom - coordinates.top) < 0 ? 1 : Math.round(coordinates.bottom - coordinates.top);
-//
-//                                int[] pixels = new int[width * height];
-//                                Bitmap bitmapPart = Bitmap.createBitmap(width == 0 ? 1 : width,
-//                                        height == 0 ? 1 : height,
-//                                        Bitmap.Config.ARGB_8888);
-//
-//                                croppedBitmap.getPixels(
-//                                        pixels, 0, width, Math.round(coordinates.left), Math.round(coordinates.top),
-//                                        width,
-//                                        height
-//                                );
-//                                bitmapPart
-//                                        .setPixels(pixels, 0, width,
-//                                                0, 0,
-//                                                width,
-//                                                height);
-//                                Bitmap bitmapParte = Bitmap.createScaledBitmap(bitmapPart, 128, 128, true);
-//                                runOnUiThread(
-//                                        new Runnable() {
-//                                            @Override
-//                                            public void run() {
-//                                                ((ImageView) findViewById(R.id.bitmap_preview)).setImageBitmap(bitmapParte);
-//                                            }
-//                                        });
-//                                List<org.tensorflow.lite.examples.detection.tflite.clasification.Classifier.Recognition> clasifResult = classifier.recognizeImage(bitmapParte, sensorOrientation);
-//                                result0.setTitle(getRec(clasifResult).getTitle());
-//                                result0.setConfidence(getRec(clasifResult).getConfidence());
-////                    ImageUtils.saveBitmap(bitmapPart, result0.getTitle()+ "|" + result0.getConfidence()*100 + "|" + System.currentTimeMillis()+ "|false" + ".jpg");
-////                    ImageUtils.saveBitmap(bitmapParte, result0.getTitle()+ "|" + result0.getConfidence()*100 + "|" + System.currentTimeMillis() +"|true" + ".jpg");
-//                            }
-//                        }
-//
-//                        lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
-//
-//                        cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
-//                        final Canvas canvas = new Canvas(cropCopyBitmap);
-//                        final Paint paint = new Paint();
-//                        paint.setColor(Color.RED);
-//                        paint.setStyle(Style.STROKE);
-//                        paint.setStrokeWidth(2.0f);
-//
-//                        final List<Classifier.Recognition> mappedRecognitions =
-//                                new LinkedList<Classifier.Recognition>();
-//
-//                        for (final Classifier.Recognition result : results) {
-//                            final RectF location = result.getLocation();
-//                            if (location != null
-//                                    && result.getConfidence() > (Settings.getInstance().getMinClassificationPercentToShow() / 100.0)) {
-//                                canvas.drawRect(location, paint);
-//
-//                                cropToFrameTransform.mapRect(location);
-//
-//                                result.setLocation(location);
-//                                mappedRecognitions.add(result);
-//                            }
-//                        }
-//
-////                        tracker.trackResults(mappedRecognitions, currTimestamp);
-//                        trackingOverlay.postInvalidate();
-//
-//                        computingDetection = false;
-//
-//                        runOnUiThread(
-//                                new Runnable() {
-//                                    @Override
-//                                    public void run() {
-//                                        showFrameInfo(previewWidth + "x" + previewHeight);
-//                                        showCropInfo(cropCopyBitmap.getWidth() + "x" + cropCopyBitmap.getHeight());
-//                                        showInference(lastProcessingTimeMs + "ms");
-//                                    }
-//                                });
-//                    }
-//                });
-//    }
-    } // last logic
 
     @Override
     protected int getLayoutId() {
@@ -340,34 +185,6 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     @Override
     protected void setNumThreads(final int numThreads) {
         runInBackground(() -> detector.setNumThreads(numThreads));
-    }
-
-    private void recreateClassifier(org.tensorflow.lite.examples.detection.tflite.clasification.Classifier.Model model, org.tensorflow.lite.examples.detection.tflite.clasification.Classifier.Device device, int numThreads) {
-        if (classifier != null) {
-            LOGGER.d("Closing classifier.");
-            classifier.close();
-            classifier = null;
-        }
-        if (device == org.tensorflow.lite.examples.detection.tflite.clasification.Classifier.Device.GPU && model == org.tensorflow.lite.examples.detection.tflite.clasification.Classifier.Model.QUANTIZED) {
-            LOGGER.d("Not creating classifier: GPU doesn't support quantized models.");
-            runOnUiThread(
-                    () -> {
-                        Toast.makeText(this, "GPU does not yet supported quantized models.", Toast.LENGTH_LONG)
-                                .show();
-                    });
-            return;
-        }
-        try {
-            LOGGER.d(
-                    "Creating classifier (model=%s, device=%s, numThreads=%d)", model, device, numThreads);
-            classifier = org.tensorflow.lite.examples.detection.tflite.clasification.Classifier.create(this, model, device, numThreads);
-        } catch (IOException e) {
-            LOGGER.e(e, "Failed to create classifier.");
-        }
-
-        // Updates the input image size.
-        imageSizeX = classifier.getImageSizeX();
-        imageSizeY = classifier.getImageSizeY();
     }
 
     private List<Recognition> detectFaces(Bitmap bitmap) { // return list of faces
@@ -435,35 +252,31 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
             DataHelper.getInstance().getListOne().clear();
             return;
         }
-        Recognition result = getRec(results);
-//        for (final org.tensorflow.lite.examples.detection.tflite.clasification.Classifier.Recognition result : results) {
-        final RectF location = result.getLocation();
-        if (location != null
-                && result.getConfidence() > (Settings.getInstance().getMinClassificationPercentToShow() / 100.0)) {
-            canvas.drawRect(location, paint);
+//        Recognition result = getRec(results);
+        for (final Recognition result : results) {
+            final RectF location = result.getLocation();
+            if (location != null
+                    && result.getConfidence() > (Settings.getInstance().getMinClassificationPercentToShow() / 100.0)) {
+                canvas.drawRect(location, paint);
 
-            cropToFrameTransform.mapRect(location);
+                cropToFrameTransform.mapRect(location);
 
-            result.setLocation(location);
-            mappedRecognitions.add(result);
+                result.setLocation(location);
+                mappedRecognitions.add(result);
+            }
         }
-//        }
 
         tracker.trackResults(mappedRecognitions, System.currentTimeMillis());
         trackingOverlay.postInvalidate();
 
-        computingDetection = false;
         lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
 
         Bitmap finalBitmap = bitmap;
         runOnUiThread(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        showFrameInfo(previewWidth + "x" + previewHeight);
-                        showCropInfo(finalBitmap.getWidth() + "x" + finalBitmap.getHeight());
-                        showInference(lastProcessingTimeMs + "ms");
-                    }
+                () -> {
+                    showFrameInfo(previewWidth + "x" + previewHeight);
+                    showCropInfo(finalBitmap.getWidth() + "x" + finalBitmap.getHeight());
+                    showInference(lastProcessingTimeMs + "ms");
                 });
         readyForNextImage();
         isProcessingFrame = false;
@@ -496,7 +309,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                         }
                     }
                 String maxKey = "";
-                Float maxValue = 0.0F;
+                float maxValue = 0.0F;
                 for (
                         String key : detects.keySet()) {
                     if (maxValue < ((detects.get(key)) / mainList.size())) {
@@ -510,11 +323,11 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                 }
             }
         }
-        return results; // todo calculation of average
+        return results;
     }
 
     private Bitmap cropBitmapClassification(Recognition detectResult, Bitmap startBitmape) {
-        Bitmap startBitmap ;
+        Bitmap startBitmap;
 
         if (!Settings.getInstance().isIsfront()) {
             Matrix matrix = new Matrix();
@@ -556,8 +369,8 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                         0, 0,
                         width,
                         height);
-        Bitmap bitmapParte = Bitmap.createScaledBitmap(bitmapPart, 128, 128, true);
-        return bitmapParte;
+
+        return Bitmap.createScaledBitmap(bitmapPart, 128, 128, true);
     }
 
     private Bitmap cropBitmapDetection(Bitmap startBitmap) {
@@ -581,12 +394,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         if (DataHelper.getInstance().getListOne().size() >= Settings.getInstance().getNumOfAvarage() && DataHelper.getInstance().getListOne().size() > 0) {
             isProcessingFrame = true;
             runInBackground(
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            startProcess();
-                        }
-                    });
+                    this::startProcess);
         }
     }
 }

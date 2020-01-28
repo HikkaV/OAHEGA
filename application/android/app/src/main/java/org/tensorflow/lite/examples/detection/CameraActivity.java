@@ -58,7 +58,6 @@ import java.nio.ByteBuffer;
 
 import org.tensorflow.lite.examples.detection.env.ImageUtils;
 import org.tensorflow.lite.examples.detection.env.Logger;
-import org.tensorflow.lite.examples.detection.utils.DataHelper;
 import org.tensorflow.lite.examples.detection.utils.Settings;
 
 public abstract class CameraActivity extends AppCompatActivity
@@ -197,14 +196,6 @@ public abstract class CameraActivity extends AppCompatActivity
         return rgbBytes;
     }
 
-    protected int getLuminanceStride() {
-        return yRowStride;
-    }
-
-    protected byte[] getLuminance() {
-        return yuvBytes[0];
-    }
-
     /**
      * Callback for android.hardware.Camera API
      */
@@ -235,20 +226,12 @@ public abstract class CameraActivity extends AppCompatActivity
 
 
         imageConverter =
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        ImageUtils.convertYUV420SPToARGB8888(bytes, previewWidth, previewHeight, rgbBytes);
-                    }
-                };
+                () -> ImageUtils.convertYUV420SPToARGB8888(bytes, previewWidth, previewHeight, rgbBytes);
 
         postInferenceCallback =
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        camera.addCallbackBuffer(bytes);
-                        isProcessingFrame = false;
-                    }
+                () -> {
+                    camera.addCallbackBuffer(bytes);
+                    isProcessingFrame = false;
                 };
         // todo save  new ready bitmap
 //        processImage(); // todo remove
@@ -289,33 +272,23 @@ public abstract class CameraActivity extends AppCompatActivity
             final int uvPixelStride = planes[1].getPixelStride();
 
             imageConverter =
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            ImageUtils.convertYUV420ToARGB8888(
-                                    yuvBytes[0],
-                                    yuvBytes[1],
-                                    yuvBytes[2],
-                                    previewWidth,
-                                    previewHeight,
-                                    yRowStride,
-                                    uvRowStride,
-                                    uvPixelStride,
-                                    rgbBytes);
-                        }
-                    };
+                    () -> ImageUtils.convertYUV420ToARGB8888(
+                            yuvBytes[0],
+                            yuvBytes[1],
+                            yuvBytes[2],
+                            previewWidth,
+                            previewHeight,
+                            yRowStride,
+                            uvRowStride,
+                            uvPixelStride,
+                            rgbBytes);
 
             postInferenceCallback =
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            image.close();
-                            isProcessingFrame = false;
-                        }
+                    () -> {
+                        image.close();
+                        isProcessingFrame = false;
                     };
 
-            // todo save  new ready bitmap
-//            processImage();// todo remove
             image.close();
             newBitmap();
 
@@ -469,13 +442,10 @@ public abstract class CameraActivity extends AppCompatActivity
         if (useCamera2API) {
             CameraConnectionFragment camera2Fragment =
                     CameraConnectionFragment.newInstance(
-                            new CameraConnectionFragment.ConnectionCallback() {
-                                @Override
-                                public void onPreviewSizeChosen(final Size size, final int rotation) {
-                                    previewHeight = size.getHeight();
-                                    previewWidth = size.getWidth();
-                                    CameraActivity.this.onPreviewSizeChosen(size, rotation);
-                                }
+                            (size, rotation) -> {
+                                previewHeight = size.getHeight();
+                                previewWidth = size.getWidth();
+                                CameraActivity.this.onPreviewSizeChosen(size, rotation);
                             },
                             this,
                             getLayoutId(),
@@ -628,8 +598,6 @@ public abstract class CameraActivity extends AppCompatActivity
     protected void showInference(String inferenceTime) {
         inferenceTimeTextView.setText(inferenceTime);
     }
-
-    protected abstract void processImage();
 
     protected abstract void onPreviewSizeChosen(final Size size, final int rotation);
 
