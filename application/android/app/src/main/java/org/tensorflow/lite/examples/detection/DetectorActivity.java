@@ -513,7 +513,18 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         return results; // todo calculation of average
     }
 
-    private Bitmap cropBitmapClassification(Recognition detectResult, Bitmap startBitmap) {
+    private Bitmap cropBitmapClassification(Recognition detectResult, Bitmap startBitmape) {
+        Bitmap startBitmap ;
+
+        if (!Settings.getInstance().isIsfront()) {
+            Matrix matrix = new Matrix();
+            matrix.preScale(-1, 1);
+            startBitmap = Bitmap.createBitmap(startBitmape, 0, 0, startBitmape.getWidth(),
+                    startBitmape.getHeight(), matrix, false);
+        } else {
+            startBitmap = startBitmape;
+        }
+
         RectF coordinates = detectResult.getLocation();
         if (coordinates.top < 0) {
             coordinates.top = 0;
@@ -553,8 +564,8 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         if (!Settings.getInstance().isIsfront()) {
             Matrix matrix = new Matrix();
             matrix.preScale(-1, 1);
-            return Bitmap.createBitmap(startBitmap, 0, 0, startBitmap.getWidth(),
-                    startBitmap.getHeight(), matrix, false);
+            return Bitmap.createScaledBitmap(Bitmap.createBitmap(startBitmap, 0, 0, startBitmap.getWidth(),
+                    startBitmap.getHeight(), matrix, false), 300, 300, false);
         } else {
             return Bitmap.createScaledBitmap(startBitmap, 300, 300, false);
         }
