@@ -399,16 +399,27 @@ public abstract class CameraActivity extends AppCompatActivity
     private String chooseCamera(boolean front) {
         final CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try {
-            for (final String cameraId : manager.getCameraIdList()) {
+            String[] list = manager.getCameraIdList();
+            for (final String cameraId : list) {
                 final CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
 
                 // We don't use a front facing camera in this sample.
                 final Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
-                if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT && front) {
-                    continue;
-                }
                 if (facing != null && facing == CameraCharacteristics.LENS_FACING_BACK && !front) {
-                    continue;
+                    useCamera2API =
+                            (facing == CameraCharacteristics.LENS_FACING_EXTERNAL)
+                                    || isHardwareLevelSupported(
+                                    characteristics, CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_FULL);
+                    LOGGER.i("Camera API lv2?: %s", useCamera2API);
+                    return cameraId;
+                }
+                if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT && front) {
+                    useCamera2API = true;
+//                            (facing == CameraCharacteristics.LENS_FACING_EXTERNAL)
+//                                    || isHardwareLevelSupported(
+//                                    characteristics, CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_FULL);
+                    LOGGER.i("Camera API lv2?: %s", useCamera2API);
+                    return cameraId;
                 }
 
                 final StreamConfigurationMap map =
@@ -421,12 +432,6 @@ public abstract class CameraActivity extends AppCompatActivity
                 // Fallback to camera1 API for internal cameras that don't have full support.
                 // This should help with legacy situations where using the camera2 API causes
                 // distorted or otherwise broken previews.
-                useCamera2API =
-                        (facing == CameraCharacteristics.LENS_FACING_EXTERNAL)
-                                || isHardwareLevelSupported(
-                                characteristics, CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_FULL);
-                LOGGER.i("Camera API lv2?: %s", useCamera2API);
-                return cameraId;
             }
         } catch (CameraAccessException e) {
             LOGGER.e(e, "Not allowed to access camera");
@@ -442,10 +447,13 @@ public abstract class CameraActivity extends AppCompatActivity
         if (useCamera2API) {
             CameraConnectionFragment camera2Fragment =
                     CameraConnectionFragment.newInstance(
-                            (size, rotation) -> {
-                                previewHeight = size.getHeight();
-                                previewWidth = size.getWidth();
-                                CameraActivity.this.onPreviewSizeChosen(size, rotation);
+                            new CameraConnectionFragment.ConnectionCallback() {
+                                @Override
+                                public void onPreviewSizeChosen(Size size, int rotation) {
+                                    previewHeight = size.getHeight();
+                                    previewWidth = size.getWidth();
+                                    CameraActivity.this.onPreviewSizeChosen(size, rotation);
+                                }
                             },
                             this,
                             getLayoutId(),

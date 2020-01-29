@@ -329,7 +329,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     private Bitmap cropBitmapClassification(Recognition detectResult, Bitmap startBitmape) {
         Bitmap startBitmap;
 
-        if (!Settings.getInstance().isIsfront()) {
+        if (Settings.getInstance().isIsfront()) {
             Matrix matrix = new Matrix();
             matrix.preScale(-1, 1);
             startBitmap = Bitmap.createBitmap(startBitmape, 0, 0, startBitmape.getWidth(),
@@ -374,7 +374,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     }
 
     private Bitmap cropBitmapDetection(Bitmap startBitmap) {
-        if (!Settings.getInstance().isIsfront()) {
+        if (Settings.getInstance().isIsfront()) {
             Matrix matrix = new Matrix();
             matrix.preScale(-1, 1);
             return Bitmap.createScaledBitmap(Bitmap.createBitmap(startBitmap, 0, 0, startBitmap.getWidth(),

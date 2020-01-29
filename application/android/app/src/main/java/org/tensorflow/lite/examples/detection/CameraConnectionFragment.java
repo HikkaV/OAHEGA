@@ -44,6 +44,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.LayoutInflater;
@@ -66,6 +67,7 @@ import org.tensorflow.lite.examples.detection.env.Logger;
 
 @SuppressLint("ValidFragment")
 public class CameraConnectionFragment extends Fragment {
+    private static final String TAG = "CameraConnectionFragmen";
     private static final Logger LOGGER = new Logger();
 
     /**
@@ -266,14 +268,14 @@ public class CameraConnectionFragment extends Fragment {
             }
         }
 
-        LOGGER.i("Desired size: " + desiredSize + ", min size: " + minSize + "x" + minSize);
-        LOGGER.i("Valid preview sizes: [" + TextUtils.join(", ", bigEnough) + "]");
-        LOGGER.i("Rejected preview sizes: [" + TextUtils.join(", ", tooSmall) + "]");
+        Log.i(TAG,"Desired size: " + desiredSize + ", min size: " + minSize + "x" + minSize);
+        Log.i(TAG,"Valid preview sizes: [" + TextUtils.join(", ", bigEnough) + "]");
+        Log.i(TAG,"Rejected preview sizes: [" + TextUtils.join(", ", tooSmall) + "]");
 
         if (exactSizeFound) {
             LOGGER.i("Exact size match found.");
             return desiredSize;
-        }
+    }
 
         // Pick the smallest of those, assuming we found any
         if (bigEnough.size() > 0) {
