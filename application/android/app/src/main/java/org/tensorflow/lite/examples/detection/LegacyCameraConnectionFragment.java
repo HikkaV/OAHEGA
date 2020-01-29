@@ -37,6 +37,7 @@ import java.util.List;
 import org.tensorflow.lite.examples.detection.customview.AutoFitTextureView;
 import org.tensorflow.lite.examples.detection.env.ImageUtils;
 import org.tensorflow.lite.examples.detection.env.Logger;
+import org.tensorflow.lite.examples.detection.utils.Settings;
 
 public class LegacyCameraConnectionFragment extends Fragment {
     private static final Logger LOGGER = new Logger();
@@ -73,7 +74,10 @@ public class LegacyCameraConnectionFragment extends Fragment {
                 public void onSurfaceTextureAvailable(
                         final SurfaceTexture texture, final int width, final int height) {
 
-                    int index = getCameraId();
+                    int index;
+
+                    index = getCameraId(Settings.getInstance().isIsfront());
+
                     camera = Camera.open(index);
 
                     try {
@@ -204,11 +208,16 @@ public class LegacyCameraConnectionFragment extends Fragment {
         }
     }
 
-    private int getCameraId() {
+    private int getCameraId(boolean isFront) {
         CameraInfo ci = new CameraInfo();
         for (int i = 0; i < Camera.getNumberOfCameras(); i++) {
             Camera.getCameraInfo(i, ci);
-            if (ci.facing == CameraInfo.CAMERA_FACING_BACK) return i; // todo check camera for vitalik
+            if (ci.facing == CameraInfo.CAMERA_FACING_BACK && !isFront) {
+                return i;
+            }
+            if (ci.facing == CameraInfo.CAMERA_FACING_FRONT && isFront) {
+                return i;
+            }
         }
         return -1; // No camera found
     }

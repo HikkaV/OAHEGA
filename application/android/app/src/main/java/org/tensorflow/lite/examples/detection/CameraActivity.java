@@ -398,12 +398,15 @@ public abstract class CameraActivity extends AppCompatActivity
     private String chooseCamera(boolean front) {
         final CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try {
+            useCamera2API = false;
+
             String[] list = manager.getCameraIdList();
             for (final String cameraId : list) {
                 final CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
 
                 // We don't use a front facing camera in this sample.
                 final Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
+
                 if (facing != null && facing == CameraCharacteristics.LENS_FACING_BACK && !front) {
                     useCamera2API =
                             (facing == CameraCharacteristics.LENS_FACING_EXTERNAL)
@@ -413,24 +416,13 @@ public abstract class CameraActivity extends AppCompatActivity
                     return cameraId;
                 }
                 if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT && front) {
-                    useCamera2API = true;
-//                            (facing == CameraCharacteristics.LENS_FACING_EXTERNAL)
-//                                    || isHardwareLevelSupported(
-//                                    characteristics, CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_FULL);
+                    useCamera2API =
+                            (facing == CameraCharacteristics.LENS_FACING_EXTERNAL)
+                                    || isHardwareLevelSupported(
+                                    characteristics, CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_FULL);
                     LOGGER.i("Camera API lv2?: %s", useCamera2API);
                     return cameraId;
                 }
-
-                final StreamConfigurationMap map =
-                        characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
-
-                if (map == null) {
-                    continue;
-                }
-
-                // Fallback to camera1 API for internal cameras that don't have full support.
-                // This should help with legacy situations where using the camera2 API causes
-                // distorted or otherwise broken previews.
             }
         } catch (CameraAccessException e) {
             LOGGER.e(e, "Not allowed to access camera");
@@ -444,6 +436,8 @@ public abstract class CameraActivity extends AppCompatActivity
 
         Fragment fragment;
         if (useCamera2API) {
+            LOGGER.i("Camera API lv2?: %s", useCamera2API);
+
             CameraConnectionFragment camera2Fragment =
                     CameraConnectionFragment.newInstance(
                             new CameraConnectionFragment.ConnectionCallback() {
@@ -461,6 +455,7 @@ public abstract class CameraActivity extends AppCompatActivity
             camera2Fragment.setCamera(cameraId);
             fragment = camera2Fragment;
         } else {
+            LOGGER.i("Camera API lv2?: %s", useCamera2API);
             fragment =
                     new LegacyCameraConnectionFragment(this, getLayoutId(), getDesiredPreviewFrameSize());
         }

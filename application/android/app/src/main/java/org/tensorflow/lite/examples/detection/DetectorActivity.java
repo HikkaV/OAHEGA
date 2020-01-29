@@ -26,7 +26,9 @@ import android.graphics.Paint.Style;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.media.ImageReader.OnImageAvailableListener;
+import android.os.Handler;
 import android.os.SystemClock;
+import android.util.Log;
 import android.util.Size;
 import android.util.TypedValue;
 import android.widget.Toast;
@@ -393,8 +395,13 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         DataHelper.getInstance().getListOne().add(croppedBitmap);
         if (DataHelper.getInstance().getListOne().size() >= Settings.getInstance().getNumOfAvarage() && DataHelper.getInstance().getListOne().size() > 0) {
             isProcessingFrame = true;
+
             runInBackground(
-                    this::startProcess);
+                    () -> {
+
+                            Log.d(TAG, "start process");
+                            startProcess();
+                    });
         }
     }
 }
