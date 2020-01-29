@@ -6,13 +6,13 @@ public class Settings {
     private int minClassificationPercentToShow;
     private int minDetectionPercentToShow;
     private int numOfAvarage;
-    private boolean isfront = true;
+    private boolean isfront = false;
 
     private Settings(){
         this.minClassificationPercentToShow = 70;
         this.minDetectionPercentToShow = 70;
         this.numOfAvarage = 1;
-        isfront = true;
+        isfront = false;
     }
 
     public static Settings getInstance() {
