@@ -1,6 +1,8 @@
 apply plugin: 'com.android.application'
 apply plugin: 'de.undercouch.download'
 apply from: "$project.rootDir/tools/const.gradle"
+apply plugin: 'com.google.gms.google-services'
+apply plugin: 'io.fabric'
 
 android {
     compileSdkVersion 28
@@ -55,4 +57,9 @@ dependencies {
 
     implementation 'org.tensorflow:tensorflow-lite-gpu:0.0.0-nightly'
     implementation 'org.tensorflow:tensorflow-lite-support:0.0.0-nightly'
+    implementation 'com.google.firebase:firebase-core:17.2.2'
+    implementation 'com.google.firebase:firebase-analytics:17.2.2'
+
+    implementation 'com.crashlytics.sdk.android:crashlytics:2.10.1'
+
 }
