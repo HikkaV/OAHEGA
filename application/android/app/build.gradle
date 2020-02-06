@@ -1,8 +1,8 @@
 apply plugin: 'com.android.application'
 apply plugin: 'de.undercouch.download'
-apply from: "$project.rootDir/tools/const.gradle"
-apply plugin: 'com.google.gms.google-services'
 apply plugin: 'io.fabric'
+apply plugin: 'com.google.gms.google-services'
+apply from: "$project.rootDir/tools/const.gradle"
 
 android {
     compileSdkVersion 28
