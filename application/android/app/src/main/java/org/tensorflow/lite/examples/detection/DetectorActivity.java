@@ -211,7 +211,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
             for (Recognition detectResult : detectResults) { // for every detection
                 if (detectResult.getConfidence() > Settings.getInstance().getMinDetectionPercentToShow() / 100.0) {
-                    ArrayList<Recognition> classificationResults = classifier.recognizeImage(cropBitmapClassification(detectResult, startBitmap), sensorOrientation);
+                    ArrayList<Recognition> classificationResults = classifier.recognizeImage(cropBitmapClassification(detectResult, startBitmap), 0);
                     ArrayList<Recognition> classifs = new ArrayList<>();
                     for (Recognition clasiifResult : classificationResults) { // for every classification
                         if ((clasiifResult.getConfidence() * 100) > Settings.getInstance().getMinClassificationPercentToShow()) {

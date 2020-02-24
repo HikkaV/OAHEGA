@@ -26,9 +26,9 @@ import java.io.IOException;
 public class ClassifierFloatMobileNet extends Classifier {
 
   /** Float MobileNet requires additional normalization of the used input. */
-  private static final float IMAGE_MEAN = 127.5f;
+  private static final float IMAGE_MEAN = 0.0f;
 
-  private static final float IMAGE_STD = 127.5f;
+  private static final float IMAGE_STD = 255.0f;
 
   /**
    * Float model does not need dequantization in the post-processing. Setting mean and std as 0.0f

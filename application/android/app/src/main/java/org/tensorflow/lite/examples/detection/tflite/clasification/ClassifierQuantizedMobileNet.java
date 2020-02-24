@@ -31,7 +31,7 @@ public class ClassifierQuantizedMobileNet extends Classifier {
    */
   private static final float IMAGE_MEAN = 0.0f;
 
-  private static final float IMAGE_STD = 1.0f;
+  private static final float IMAGE_STD = 255.0f;
 
   /** Quantized MobileNet requires additional dequantization to the output probability. */
   private static final float PROBABILITY_MEAN = 0.0f;
@@ -53,7 +53,7 @@ public class ClassifierQuantizedMobileNet extends Classifier {
     // you can download this file from
     // see build.gradle for where to obtain this file. It should be auto
     // downloaded into assets.
-    return "detect_emotions_full_qant.tflite";
+    return "emotions_full.tflite";
   }
 
   @Override
