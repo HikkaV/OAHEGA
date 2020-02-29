@@ -18,6 +18,7 @@ package org.tensorflow.lite.examples.detection;
 
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
@@ -26,6 +27,7 @@ import android.graphics.Paint.Style;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.media.ImageReader.OnImageAvailableListener;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.util.Log;
@@ -33,11 +35,21 @@ import android.util.Size;
 import android.util.TypedValue;
 import android.widget.Toast;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.tensorflow.lite.examples.detection.customview.OverlayView;
 import org.tensorflow.lite.examples.detection.env.BorderedText;
@@ -82,6 +94,66 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     private MultiBoxTracker tracker;
 
     private org.tensorflow.lite.examples.detection.tflite.clasification.Classifier classifier;
+
+    private boolean firstRun = true;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+
+    }
+
+    private void doTest() {
+        File file = new File("storage/emulated/0/oahega photo/1");
+        if (file != null) {
+            Log.d("===", "list: " + Arrays.toString(file.listFiles()));
+            Log.d("===", "list: " + file.listFiles().length);
+            StringBuilder stringBuilder = new StringBuilder();
+            for (int i = 0; i < file.listFiles().length; i += 1) {
+                File image = file.listFiles()[i];
+                try {
+                    Bitmap bitmap =
+                            BitmapFactory.decodeStream(new FileInputStream(image.toString()));
+                    Log.d("===", image.toString());
+                    ArrayList<Recognition> recognitions = classifier.recognizeImage(bitmap, 0);
+                    Recognition r = getRec(recognitions);
+                    String input = image.getName().split("_")[0];
+                    stringBuilder.append(image.getName().toString());
+                    stringBuilder.append(":");
+                    stringBuilder.append(r.getTitle());
+                    stringBuilder.append(":");
+                    stringBuilder.append(r.getConfidence() * 100);
+                    stringBuilder.append("\n");
+                    Log.d("===", "\n input: " + input + "\t output: " + r.getTitle() + " \tresult: " + input.equals(r.getTitle()));
+                    for (Recognition recognition : recognitions) {
+                        Log.d("===", recognition.getTitle() + " : " + recognition.getConfidence() * 100);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+            }
+            String stringResult = stringBuilder.toString();
+            Writer writer = null;
+            try {
+                writer = new BufferedWriter(new OutputStreamWriter(
+                        new FileOutputStream("storage/emulated/0/oahega photo/result.txt")));
+                writer.write(stringBuilder.toString());
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    writer.close();
+                } catch (Exception ex) {/*ignore*/}
+            }
+            Log.d("+++", stringResult);
+        } else {
+            Log.d("===", "file == null");
+        }
+    }
 
     @Override
     public void onPreviewSizeChosen(final Size size, final int rotation) {
@@ -190,55 +262,77 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     }
 
     private List<Recognition> detectFaces(Bitmap bitmap) { // return list of faces
-        List<Recognition> detections = detector.recognizeImage(bitmap);
-        List<Recognition> detectionsResult = new ArrayList<>();
-        for (Recognition detection : detections) {
-            if (detection.getTitle().equals("face")) {
-                detectionsResult.add(detection);
-            }
-        }
-        return detectionsResult;
+        return detector.recognizeImage(bitmap);
+
     }
 
     @Override
     public void startProcess() {
+//        if (firstRun) {
+////            doTest();
+//            firstRun = false;
+//        }
         startTime = SystemClock.uptimeMillis();
-        ArrayList<Bitmap> startBitmaps = DataHelper.getInstance().getListOne();
-        ArrayList<ArrayList<Recognition>> mainList = new ArrayList<>();
-        for (Bitmap startBitmap : startBitmaps) { // for every bitmap
-            List<Recognition> detectResults = detectFaces(cropBitmapDetection(startBitmap));
-            ArrayList<Recognition> detects = new ArrayList<>();
-
-            for (Recognition detectResult : detectResults) { // for every detection
-                if (detectResult.getConfidence() > Settings.getInstance().getMinDetectionPercentToShow() / 100.0) {
-                    ArrayList<Recognition> classificationResults = classifier.recognizeImage(cropBitmapClassification(detectResult, startBitmap), 0);
-                    ArrayList<Recognition> classifs = new ArrayList<>();
-                    for (Recognition clasiifResult : classificationResults) { // for every classification
-                        if ((clasiifResult.getConfidence() * 100) > Settings.getInstance().getMinClassificationPercentToShow()) {
-                            clasiifResult.setLocation(detectResult.getLocation());
-                            classifs.add(clasiifResult);
-                        }
-                    }
-                    if (!classifs.isEmpty()) {
-                        detects.add(getRec(classifs));
+        ArrayList<Bitmap> inputBitmaps = DataHelper.getInstance().getListOne();
+        ArrayList<Recognition> outputs = new ArrayList<>();
+        ArrayList<ArrayList<Recognition>> resultsForAvarageOnManyBitmaps = new ArrayList<>();
+        Log.d("===", "start process " + inputBitmaps.size() + " inputs");
+        for (Bitmap bitmap : inputBitmaps) {
+            List<Recognition> detects = detectFaces(cropBitmapDetection(bitmap));
+            Log.d("===", "detects on " + inputBitmaps.indexOf(bitmap) + " is " + detects.size());
+            ArrayList<Recognition> resultClassiofOnOneBitmap = new ArrayList<>();
+            for (Recognition detect : detects) {
+                if (detect.getConfidence() * 100 > Settings.getInstance().getMinDetectionPercentToShow()) {
+                    if ("face".equals(detect.getTitle())) {
+                        Log.d("===", "new 1 " + detect.getTitle() + " : " + detect.getConfidence());
+                        Bitmap imageForClassif = cropBitmapClassification(detect, bitmap);
+                        List<Recognition> classifs = classifier.recognizeImage(imageForClassif, 0);
+                        Recognition bestClassif = getRec(classifs);
+                        bestClassif.setLocation(detect.getLocation());
+                        Log.d("===", "new 2" + bestClassif.getTitle() + " : " + getRec(classifs).getConfidence() * 100);
+                        resultClassiofOnOneBitmap.add(getRec(classifs));
+                    } else {
+                        Log.d("===", "new person " + detect.getConfidence() * 100);
+                        outputs.add(detect);
                     }
                 }
-                mainList.add(detects);
+            }
+            resultsForAvarageOnManyBitmaps.add(resultClassiofOnOneBitmap);
+        }
+        Log.d("===", "detects and classifs ended");
+        int minDetectsOnMitmap = resultsForAvarageOnManyBitmaps.get(0).size();
+
+        for (int i = 0; i < resultsForAvarageOnManyBitmaps.size(); i++) {
+            if (resultsForAvarageOnManyBitmaps.get(i).size() < minDetectsOnMitmap) {
+                minDetectsOnMitmap = resultsForAvarageOnManyBitmaps.get(i).size();
             }
         }
-
-
-        ArrayList<Recognition> results = getResultsForShow(mainList);
-        if (results == null) {
-            readyForNextImage();
-            isProcessingFrame = false;
-            DataHelper.getInstance().getListOne().clear();
-            return;
+        for (int detectIndex = 0; detectIndex < minDetectsOnMitmap; detectIndex++) {
+            ArrayList<Recognition> results = new ArrayList<>();
+            for (int bitmapIndex = 0; bitmapIndex < resultsForAvarageOnManyBitmaps.size(); bitmapIndex++) {
+                results.add(resultsForAvarageOnManyBitmaps.get(bitmapIndex).get(detectIndex));
+            }
+//            Log.d("===", "new Face " + getRec(results).getConfidence() * 100);
+            outputs.add(getRec(results));
         }
-        showResults(results, startBitmaps.get(0));
+
+        for (Recognition recognition : outputs) {
+            recognition.setConfidence(recognition.getConfidence() * 100);
+        }
+
+        showResults(outputs, inputBitmaps.get(0));
+
+//        readyForNextImage();
+//        isProcessingFrame = false;
+//        DataHelper.getInstance().getListOne().clear();
     }
 
     private void showResults(ArrayList<Recognition> results, Bitmap bitmap) {
+
+        Log.d("===", "showResults");
+        for (Recognition recognition : results) {
+            Log.d("===", "title " + recognition.getTitle() + " coeficient: " + recognition.getConfidence());
+        }
         bitmap = Bitmap.createBitmap(bitmap);
         final Canvas canvas = new Canvas(bitmap);
         final Paint paint = new Paint();
@@ -254,11 +348,9 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
             DataHelper.getInstance().getListOne().clear();
             return;
         }
-//        Recognition result = getRec(results);
         for (final Recognition result : results) {
             final RectF location = result.getLocation();
-            if (location != null
-                    && result.getConfidence() > (Settings.getInstance().getMinClassificationPercentToShow() / 100.0)) {
+            if (location != null) {
                 canvas.drawRect(location, paint);
 
                 cropToFrameTransform.mapRect(location);
@@ -283,6 +375,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         readyForNextImage();
         isProcessingFrame = false;
         DataHelper.getInstance().getListOne().clear();
+        Log.d("===", "end procees");
     }
 
     private ArrayList<Recognition> getResultsForShow(ArrayList<ArrayList<Recognition>> mainList) {
@@ -331,7 +424,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     private Bitmap cropBitmapClassification(Recognition detectResult, Bitmap startBitmape) {
         Bitmap startBitmap;
 
-        if (Settings.getInstance().isIsfront()) {
+        if (!Settings.getInstance().isIsfront()) {
             Matrix matrix = new Matrix();
             matrix.preScale(-1, 1);
             startBitmap = Bitmap.createBitmap(startBitmape, 0, 0, startBitmape.getWidth(),
@@ -372,17 +465,17 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                         width,
                         height);
 
-        return Bitmap.createScaledBitmap(bitmapPart, 128, 128, true);
+        return bitmapPart;
     }
 
     private Bitmap cropBitmapDetection(Bitmap startBitmap) {
         if (Settings.getInstance().isIsfront()) {
             Matrix matrix = new Matrix();
             matrix.preScale(-1, 1);
-            return Bitmap.createScaledBitmap(Bitmap.createBitmap(startBitmap, 0, 0, startBitmap.getWidth(),
-                    startBitmap.getHeight(), matrix, false), 300, 300, false);
+            return Bitmap.createBitmap(startBitmap, 0, 0, startBitmap.getWidth(),
+                    startBitmap.getHeight(), matrix, false);
         } else {
-            return Bitmap.createScaledBitmap(startBitmap, 300, 300, false);
+            return startBitmap;
         }
     }
 
@@ -399,8 +492,8 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
             runInBackground(
                     () -> {
 
-                            Log.d(TAG, "start process");
-                            startProcess();
+                        Log.d(TAG, "start process");
+                        startProcess();
                     });
         }
     }

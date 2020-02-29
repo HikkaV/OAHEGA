@@ -38,7 +38,7 @@ import org.tensorflow.lite.examples.detection.tflite.Recognition;
 /** A tracker that handles non-max suppression and matches existing objects to new detections. */
 public class MultiBoxTracker {
   private static final float TEXT_SIZE_DIP = 18;
-  private static final float MIN_SIZE = 16.0f;
+  private static final float MIN_SIZE = 1.0f;
   private static final int[] COLORS = {
     Color.BLUE,
     Color.RED,
