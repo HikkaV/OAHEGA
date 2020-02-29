@@ -77,7 +77,7 @@ public abstract class CameraActivity extends AppCompatActivity
     private Handler handler;
     private HandlerThread handlerThread;
     private boolean useCamera2API;
-    protected boolean isProcessingFrame = false;
+    protected volatile boolean isProcessingFrame = false;
     private byte[][] yuvBytes = new byte[3][];
     private int[] rgbBytes = null;
     private int yRowStride;
@@ -399,31 +399,34 @@ public abstract class CameraActivity extends AppCompatActivity
     private String chooseCamera(boolean front) {
         final CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try {
-            useCamera2API = false;
-
-            String[] list = manager.getCameraIdList();
-            for (final String cameraId : list) {
+            for (final String cameraId : manager.getCameraIdList()) {
                 final CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
 
                 // We don't use a front facing camera in this sample.
                 final Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
-
-                if (facing != null && facing == CameraCharacteristics.LENS_FACING_BACK && !front) {
-                    useCamera2API =
-                            (facing == CameraCharacteristics.LENS_FACING_EXTERNAL)
-                                    || isHardwareLevelSupported(
-                                    characteristics, CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_FULL);
-                    LOGGER.i("Camera API lv2?: %s", useCamera2API);
-                    return cameraId;
-                }
                 if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT && front) {
-                    useCamera2API =
-                            (facing == CameraCharacteristics.LENS_FACING_EXTERNAL)
-                                    || isHardwareLevelSupported(
-                                    characteristics, CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_FULL);
-                    LOGGER.i("Camera API lv2?: %s", useCamera2API);
-                    return cameraId;
+                    continue;
                 }
+                if (facing != null && facing == CameraCharacteristics.LENS_FACING_BACK && !front) {
+                    continue;
+                }
+
+                final StreamConfigurationMap map =
+                        characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+
+                if (map == null) {
+                    continue;
+                }
+
+                // Fallback to camera1 API for internal cameras that don't have full support.
+                // This should help with legacy situations where using the camera2 API causes
+                // distorted or otherwise broken previews.
+                useCamera2API =
+                        (facing == CameraCharacteristics.LENS_FACING_EXTERNAL)
+                                || isHardwareLevelSupported(
+                                characteristics, CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_FULL);
+                LOGGER.i("Camera API lv2?: %s", useCamera2API);
+                return cameraId;
             }
         } catch (CameraAccessException e) {
             LOGGER.e(e, "Not allowed to access camera");
