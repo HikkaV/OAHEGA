@@ -33,6 +33,7 @@ import android.os.SystemClock;
 import android.util.Log;
 import android.util.Size;
 import android.util.TypedValue;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.io.BufferedWriter;
@@ -108,7 +109,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         File file = new File("storage/emulated/0/oahega photo/1");
         if (file != null) {
             Log.d("===", "list: " + Arrays.toString(file.listFiles()));
-            Log.d("===", "list: " + file.listFiles().length);
+//            Log.d("===", "list: " + file.listFiles().length);
             StringBuilder stringBuilder = new StringBuilder();
             for (int i = 0; i < file.listFiles().length; i += 1) {
                 File image = file.listFiles()[i];
@@ -212,10 +213,13 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
         trackingOverlay = findViewById(R.id.tracking_overlay);
         trackingOverlay.addCallback(
-                canvas -> {
-                    tracker.draw(canvas);
-                    if (isDebug()) {
-                        tracker.drawDebug(canvas);
+                new OverlayView.DrawCallback() {
+                    @Override
+                    public void drawCallback(Canvas canvas) {
+                        tracker.draw(canvas);
+                        if (DetectorActivity.this.isDebug()) {
+                            tracker.drawDebug(canvas);
+                        }
                     }
                 });
 
@@ -269,7 +273,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     @Override
     public void startProcess() {
 //        if (firstRun) {
-////            doTest();
+//            doTest();
 //            firstRun = false;
 //        }
         startTime = SystemClock.uptimeMillis();
@@ -285,8 +289,21 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                 if (detect.getConfidence() * 100 > Settings.getInstance().getMinDetectionPercentToShow()) {
                     if ("face".equals(detect.getTitle())) {
                         Log.d("===", "new 1 " + detect.getTitle() + " : " + detect.getConfidence());
+                        Matrix matrix = new Matrix();
+
+                        matrix.postRotate(sensorOrientation);
+
                         Bitmap imageForClassif = cropBitmapClassification(detect, bitmap);
-                        List<Recognition> classifs = classifier.recognizeImage(imageForClassif, 0);
+                        Bitmap rotatedBitmap = Bitmap.createBitmap(imageForClassif, 0, 0, imageForClassif.getWidth(), imageForClassif.getHeight(), matrix, true);
+
+                        runOnUiThread(
+                                new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        ((ImageView) findViewById(R.id.bitmap_preview)).setImageBitmap(rotatedBitmap);
+                                    }
+                                });
+                        List<Recognition> classifs = classifier.recognizeImage(imageForClassif, sensorOrientation);
                         Recognition bestClassif = getRec(classifs);
                         bestClassif.setLocation(detect.getLocation());
                         Log.d("===", "new 2" + bestClassif.getTitle() + " : " + getRec(classifs).getConfidence() * 100);
@@ -424,7 +441,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     private Bitmap cropBitmapClassification(Recognition detectResult, Bitmap startBitmape) {
         Bitmap startBitmap;
 
-        if (!Settings.getInstance().isIsfront()) {
+        if (Settings.getInstance().isIsfront()) {
             Matrix matrix = new Matrix();
             matrix.preScale(-1, 1);
             startBitmap = Bitmap.createBitmap(startBitmape, 0, 0, startBitmape.getWidth(),
@@ -469,7 +486,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     }
 
     private Bitmap cropBitmapDetection(Bitmap startBitmap) {
-        if (!Settings.getInstance().isIsfront()) {
+        if (Settings.getInstance().isIsfront()) {
             Matrix matrix = new Matrix();
             matrix.preScale(-1, 1);
             return Bitmap.createBitmap(startBitmap, 0, 0, startBitmap.getWidth(),
@@ -481,6 +498,9 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
     @Override
     protected void newBitmap() {
+        int cropSize = TF_OD_API_INPUT_SIZE;
+        rgbFrameBitmap = Bitmap.createBitmap(previewWidth, previewHeight, Config.ARGB_8888);
+        croppedBitmap = Bitmap.createBitmap(cropSize, cropSize, Config.ARGB_8888);
         rgbFrameBitmap.setPixels(getRgbBytes(), 0, previewWidth, 0, 0, previewWidth, previewHeight);
 
         final Canvas canvas = new Canvas(croppedBitmap);

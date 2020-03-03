@@ -209,7 +209,7 @@ public abstract class CameraActivity extends AppCompatActivity
 
         try {
             // Initialize the storage bitmaps once when the resolution is known.
-            if (rgbBytes == null) {
+            if (!isProcessingFrame) {
                 Camera.Size previewSize = camera.getParameters().getPreviewSize();
                 previewHeight = previewSize.height;
                 previewWidth = previewSize.width;
@@ -245,7 +245,7 @@ public abstract class CameraActivity extends AppCompatActivity
     @Override
     public void onImageAvailable(final ImageReader reader) {
         // We need wait until we have some size from onPreviewSizeChosen
-        if (previewWidth == 0 || previewHeight == 0) {
+        if (previewWidth == 0 || previewHeight == 0) { // todo
             return;
         }
         if (rgbBytes == null) {
