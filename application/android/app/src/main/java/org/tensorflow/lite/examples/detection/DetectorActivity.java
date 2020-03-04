@@ -303,7 +303,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                                         ((ImageView) findViewById(R.id.bitmap_preview)).setImageBitmap(rotatedBitmap);
                                     }
                                 });
-                        List<Recognition> classifs = classifier.recognizeImage(imageForClassif, sensorOrientation);
+                        List<Recognition> classifs = classifier.recognizeImage(imageForClassif, 0);
                         Recognition bestClassif = getRec(classifs);
                         bestClassif.setLocation(detect.getLocation());
                         Log.d("===", "new 2" + bestClassif.getTitle() + " : " + getRec(classifs).getConfidence() * 100);

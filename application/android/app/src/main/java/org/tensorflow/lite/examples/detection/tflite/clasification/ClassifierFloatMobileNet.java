@@ -36,7 +36,7 @@ public class ClassifierFloatMobileNet extends Classifier {
    */
   private static final float PROBABILITY_MEAN = 0.0f;
 
-  private static final float PROBABILITY_STD = 255.0f;
+  private static final float PROBABILITY_STD = 1.0f;
 
   /**
    * Initializes a {@code ClassifierFloatMobileNet}.
@@ -53,15 +53,15 @@ public class ClassifierFloatMobileNet extends Classifier {
     // you can download this file from
     // see build.gradle for where to obtain this file. It should be auto
     // downloaded into assets.
-    return "emotions_distiled.tflite";
-//    return "emotions_full.tflite";
+//    return "emotions_distiled.tflite";
+    return "emotions_full.tflite";
 //    return "detect_emotions_full_qant.tflite";
   }
 
   @Override
   protected String getLabelPath() {
-    return "emotions_distiled.txt";
-//    return "emotions_lables.txt";
+//    return "emotions_distiled.txt";
+    return "emotions_lables.txt";
   }
 
   @Override

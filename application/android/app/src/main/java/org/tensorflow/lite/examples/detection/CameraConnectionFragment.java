@@ -268,14 +268,14 @@ public class CameraConnectionFragment extends Fragment {
             }
         }
 
-        Log.i(TAG,"Desired size: " + desiredSize + ", min size: " + minSize + "x" + minSize);
-        Log.i(TAG,"Valid preview sizes: [" + TextUtils.join(", ", bigEnough) + "]");
-        Log.i(TAG,"Rejected preview sizes: [" + TextUtils.join(", ", tooSmall) + "]");
+        Log.i(TAG, "Desired size: " + desiredSize + ", min size: " + minSize + "x" + minSize);
+        Log.i(TAG, "Valid preview sizes: [" + TextUtils.join(", ", bigEnough) + "]");
+        Log.i(TAG, "Rejected preview sizes: [" + TextUtils.join(", ", tooSmall) + "]");
 
         if (exactSizeFound) {
             LOGGER.i("Exact size match found.");
             return desiredSize;
-    }
+        }
 
         // Pick the smallest of those, assuming we found any
         if (bigEnough.size() > 0) {
