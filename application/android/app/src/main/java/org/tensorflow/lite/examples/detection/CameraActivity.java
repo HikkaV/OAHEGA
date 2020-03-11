@@ -60,7 +60,7 @@ public abstract class CameraActivity extends AppCompatActivity
     private boolean debug = false;
     private Handler handler;
     private HandlerThread handlerThread;
-    private boolean useCamera2API;
+    protected boolean useCamera2API;
     protected volatile boolean isProcessingFrame = false;
     private byte[][] yuvBytes = new byte[3][];
     private int[] rgbBytes = null;

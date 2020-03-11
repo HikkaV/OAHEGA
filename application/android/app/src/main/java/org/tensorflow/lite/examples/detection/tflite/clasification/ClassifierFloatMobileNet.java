@@ -54,8 +54,8 @@ public class ClassifierFloatMobileNet extends Classifier {
     // see build.gradle for where to obtain this file. It should be auto
     // downloaded into assets.
 //    return "emotions_distiled.tflite";
-    return "emotions_full.tflite";
-//    return "detect_emotions_full_qant.tflite";
+//    return "emotions_full.tflite";
+    return "detect_emotions_full_qant.tflite";
   }
 
   @Override

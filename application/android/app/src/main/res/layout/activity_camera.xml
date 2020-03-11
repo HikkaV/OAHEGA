@@ -18,15 +18,34 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#00000000">
+    android:background="#000000">
 
-    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_alignParentTop="true"
+        android:background="@color/semi_transparent">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/tfl2_logo" />
+        <ImageView
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:id="@+id/bitmap_preview"/>
+    </androidx.appcompat.widget.Toolbar>
+
+
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginTop="?attr/actionBarSize"
+        android:layout_marginBottom="?attr/actionBarSize"
         android:background="@android:color/black"
         android:orientation="vertical">
-
 
         <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:tools="http://schemas.android.com/tools"
@@ -34,25 +53,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             tools:context="org.tensorflow.demo.CameraActivity" />
-
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:layout_alignParentTop="true"
-            android:background="@color/semi_transparent">
-
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/tfl2_logo" />
-            <ImageView
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:id="@+id/bitmap_preview"/>
-        </androidx.appcompat.widget.Toolbar>
-
     </RelativeLayout>
+
 
     <include
         android:id="@+id/bottom_sheet_layout"

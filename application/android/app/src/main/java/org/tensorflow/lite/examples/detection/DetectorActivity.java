@@ -26,6 +26,7 @@ import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.location.Location;
 import android.media.ImageReader.OnImageAvailableListener;
 import android.os.Bundle;
 import android.os.Handler;
@@ -296,18 +297,20 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                         Bitmap imageForClassif = cropBitmapClassification(detect, bitmap);
                         Bitmap rotatedBitmap = Bitmap.createBitmap(imageForClassif, 0, 0, imageForClassif.getWidth(), imageForClassif.getHeight(), matrix, true);
 
-                        runOnUiThread(
-                                new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        ((ImageView) findViewById(R.id.bitmap_preview)).setImageBitmap(rotatedBitmap);
-                                    }
-                                });
+//                        runOnUiThread(
+//                                new Runnable() {
+//                                    @Override
+//                                    public void run() {
+//                                        ((ImageView) findViewById(R.id.bitmap_preview)).setImageBitmap(rotatedBitmap);
+//                                    }
+//                                });
                         List<Recognition> classifs = classifier.recognizeImage(imageForClassif, 0);
                         Recognition bestClassif = getRec(classifs);
                         bestClassif.setLocation(detect.getLocation());
                         Log.d("===", "new 2" + bestClassif.getTitle() + " : " + getRec(classifs).getConfidence() * 100);
-                        resultClassiofOnOneBitmap.add(getRec(classifs));
+                        if (bestClassif.getConfidence() * 100 > Settings.getInstance().getMinClassificationPercentToShow()) {
+                            resultClassiofOnOneBitmap.add(bestClassif);
+                        }
                     } else {
                         Log.d("===", "new person " + detect.getConfidence() * 100);
                         outputs.add(detect);
@@ -333,15 +336,27 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
             outputs.add(getRec(results));
         }
 
-        for (Recognition recognition : outputs) {
-            recognition.setConfidence(recognition.getConfidence() * 100);
-        }
+//        for (Recognition recognition : outputs) {
+//            recognition.setConfidence(recognition.getConfidence() * 100);
+//        }
 
+        if (!useCamera2API && Settings.getInstance().isIsfront()) {
+            for (Recognition output : outputs) {
+                changeOutput(output);
+            }
+        }
         showResults(outputs, inputBitmaps.get(0));
 
-//        readyForNextImage();
-//        isProcessingFrame = false;
-//        DataHelper.getInstance().getListOne().clear();
+    }
+
+    private void changeOutput(Recognition recognition) {
+        RectF inputLocation = recognition.getLocation();
+        RectF outputLocation = new RectF();
+        outputLocation.top = TF_OD_API_INPUT_SIZE - inputLocation.bottom;
+        outputLocation.bottom = TF_OD_API_INPUT_SIZE - inputLocation.top;
+        outputLocation.left = TF_OD_API_INPUT_SIZE - inputLocation.right;
+        outputLocation.right = TF_OD_API_INPUT_SIZE - inputLocation.left;
+        recognition.setLocation(outputLocation);
     }
 
     private void showResults(ArrayList<Recognition> results, Bitmap bitmap) {
@@ -359,12 +374,12 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
         final List<Recognition> mappedRecognitions =
                 new LinkedList<>();
-        if (results.isEmpty()) {
-            readyForNextImage();
-            isProcessingFrame = false;
-            DataHelper.getInstance().getListOne().clear();
-            return;
-        }
+//        if (results.isEmpty()) {
+//            readyForNextImage();
+//            isProcessingFrame = false;
+//            DataHelper.getInstance().getListOne().clear();
+//            return;
+//        }
         for (final Recognition result : results) {
             final RectF location = result.getLocation();
             if (location != null) {
