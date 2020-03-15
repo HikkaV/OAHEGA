@@ -11,13 +11,14 @@ import os
 import sys
 from skopt import forest_minimize
 import tensorflow.compat.v1 as tf
-
-
+from elastic import ESLogger
+import string
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--type_model',type=str,default='tensorflow',help='type of model to use for object detection')
+    parser.add_argument('--type_model', type=str, default='tensorflow',
+                        help='type of model to use for object detection')
     parser.add_argument('--model-cfg', type=str, default='yolov2-tiny-ahegao.cfg',
                         help='path to config file')
     parser.add_argument('--model-weights', type=str,
@@ -43,18 +44,21 @@ def parse_args():
                         help='constant to scale age')
     parser.add_argument('--brightness_threshold', type=int, default=70,
                         help='if brightness threshold is < determined -> more brightness wil be added to input data')
-
+    parser.add_argument('--es_log', type=bool, default=True,
+                        help='either to log emotions to kibana')
+    parser.add_argument('--recreate_index',type=bool,default=False,
+                        help='either to recreate elastic index')
     args = parser.parse_args()
     return args
 
-def load_models():
 
+def load_models():
     json = open('MobileNet.json', 'r')
     model = json.read()
     json.close()
     model = model_from_json(model)
     model.load_weights('DMNfullmodel.h5')
-    model_emotions = load_model('distilled_model.h5',compile=False)
+    model_emotions = load_model('distilled_model.h5', compile=False)
     return model, model_emotions
 
 

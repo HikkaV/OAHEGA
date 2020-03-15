@@ -1,9 +1,15 @@
 from helper import *
 
 
+
 class Ahegao:
-    def __init__(self, args):
+    def __init__(self, args, host='localhost', port=9200, index='emotions'):
         self.args = args
+        if self.args.es_log:
+            self.es_logger = ESLogger(host=host, port=port, index=index)
+            self.user_name = ''.join(np.random.choice(list(string.ascii_uppercase + string.digits+string.ascii_letters), size=20))
+        if self.args.recreate_index:
+            self.es_logger.recreate_index()
         self.graph = None
         if self.args.type_model == 'tensorflow':
             self.graph = self.read_tensorflow()
@@ -53,11 +59,11 @@ class Ahegao:
             img = cv2.cvtColor(self.frame, cv2.COLOR_RGB2BGR)
             img_ = img[crop_faces[i][1]:crop_faces[i][3], crop_faces[i][0]:crop_faces[i][2], :]
 
-            img=self.preproc.face_alignment(img_)
-            brightness=self.preproc.estimate_brightness(img)
+            img = self.preproc.face_alignment(img_)
+            brightness = self.preproc.estimate_brightness(img)
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            if brightness<=self.args.brightness_threshold:
-               img=self.preproc.adjust_gamma(img,1.5)
+            if brightness <= self.args.brightness_threshold:
+                img = self.preproc.adjust_gamma(img, 1.5)
             inputs_lis.append(img)
         return inputs_lis, crop_faces
 
@@ -87,8 +93,9 @@ class Ahegao:
             fontScale = 0.5
             fontColor = self.preproc.COLOR_GREEN
             lineType = 2
-            prediction_ = 'sex : {} age :{} emotion: {} {}%'.format(i[2], i[1],
-                                                                    i[0], i[4])
+            prediction_ = 'sex : {0} age :{1} emotion: {2} {3}%'.format(i[2], i[1],
+                                                                        i[0], i[4])
+            self.es_logger.load_log({'username': self.user_name, 'emotion': i[0]})
             cv2.putText(self.frame, prediction_,
                         bottomLeftCornerOfText,
                         font,
@@ -96,14 +103,14 @@ class Ahegao:
                         fontColor,
                         lineType)
 
-    def put_labels(self, crop_faces,  average_emo, average_age, average_gender):
+    def put_labels(self, crop_faces, average_emo, average_age, average_gender):
 
         if self.conf_counter % self.qua_conf == 0:
             self.get_average_prediction(crop_faces, average_emo, average_age, average_gender)
 
         self.labels_func()
 
-    def get_average_prediction(self, crop_faces, average_pred_emo, average_pred_age, average_pred_gender,constant=0.8):
+    def get_average_prediction(self, crop_faces, average_pred_emo, average_pred_age, average_pred_gender, constant=0.8):
         self.overall_prediction = []
         tmp_emo = np.zeros(average_pred_emo[0][0].shape)
         tmp_gender = np.zeros(average_pred_gender[0][0].shape)
@@ -118,7 +125,7 @@ class Ahegao:
                 tmp_gender = np.add(average_pred_gender[i][counter1], tmp_gender)
                 tmp_age = np.add(average_pred_age[i][counter1], tmp_age)
             tmp_emo = tmp_emo / qua_conf
-            tmp_age = tmp_age / (qua_conf *constant)
+            tmp_age = tmp_age / (qua_conf * constant)
             tmp_gender = tmp_gender / qua_conf
             score = round((np.max(tmp_emo, axis=1) / np.sum(tmp_emo, axis=1))[0] * 100, 2)
             predicted_emo = self.classes_emo[np.argmax(tmp_emo, axis=1)[0]]
@@ -139,7 +146,8 @@ class Ahegao:
         self.average_pred_age.append(self.prediction_age)
         self.average_pred_gender.append(self.prediction_gender)
         self.average_pred_emo.append(self.prediction_emo)
-        self.put_labels(crop_faces, self.average_pred_emo.copy(), self.average_pred_age.copy(), self.average_pred_gender.copy())
+        self.put_labels(crop_faces, self.average_pred_emo.copy(), self.average_pred_age.copy(),
+                        self.average_pred_gender.copy())
         inputs_lis.clear()
         self.average_pred_emo.clear()
         self.average_pred_gender.clear()
