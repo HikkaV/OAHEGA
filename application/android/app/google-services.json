@@ -10,7 +10,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:335825533065:android:d3e0ad377a765be210ee58",
         "android_client_info": {
-          "package_name": "org.tensorflow.lite.examples.detection"
+          "package_name": "org.oahega.com"
         }
       },
       "oauth_client": [
@@ -18,7 +18,7 @@
           "client_id": "335825533065-fm185sb59ocff0m0rlrgocqu0kivas8r.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "org.tensorflow.lite.examples.detection",
+            "package_name": "org.oahega.com",
             "certificate_hash": "fb6bd08dddba24a23cd39337fae02b7e041b6b6b"
           }
         },
