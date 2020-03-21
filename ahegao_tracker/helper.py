@@ -13,7 +13,7 @@ from skopt import forest_minimize
 import tensorflow.compat.v1 as tf
 from elastic import ESLogger
 import string
-
+import datetime
 
 def parse_args():
     parser = argparse.ArgumentParser()

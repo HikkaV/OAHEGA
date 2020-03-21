@@ -1,3 +1,5 @@
+import datetime
+
 from elasticsearch import Elasticsearch
 
 
@@ -11,6 +13,14 @@ class ESLogger:
                 "settings": {
                     "number_of_shards": 1,
                     "number_of_replicas": 0
+                },
+                "mappings": {
+                    "properties": {
+                        "date": {
+                            "type": "date",
+                            "format": "yyyy-MM-dd'T'HH:mm:ss"
+                        }
+                    }
                 }
             }
         self.es = Elasticsearch([{'host': host, 'port': port}])
@@ -21,8 +31,9 @@ class ESLogger:
             raise Exception
         self.check_index()
 
+
     def load_log(self, logs):
-        res = self.es.index(index=self.index, doc_type='m', body=logs)
+        res = self.es.index(index=self.index, doc_type='_doc', body=logs)
         if res:
             print('Successful')
         else:
@@ -34,8 +45,11 @@ class ESLogger:
         else:
             print('Index already exists')
 
-    def recreate_index(self):
+    def delete_index(self):
         self.es.indices.delete(index=self.index, ignore=[400, 404])
+
+    def recreate_index(self):
+        self.delete_index()
         self.create_index()
 
     def create_index(self):
