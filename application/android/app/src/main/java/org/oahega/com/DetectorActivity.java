@@ -16,6 +16,7 @@
 
 package org.oahega.com;
 
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
@@ -24,11 +25,13 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
+import android.graphics.Point;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.media.ImageReader.OnImageAvailableListener;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Size;
 import android.util.TypedValue;
@@ -64,7 +67,8 @@ import org.oahega.com.utils.DataHelper;
  * objects.
  */
 public class DetectorActivity extends CameraActivity implements OnImageAvailableListener {
-    private static final Logger LOGGER = new Logger();
+
+    private static final Logger LOGGER = new Logger("DetectorActivity");
     private static final String TAG = "DetectorActivity";
 
     // Configuration values for the prepackaged SSD model.
@@ -74,7 +78,8 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     private static final String TF_OD_API_LABELS_FILE = "file:///android_asset/detection_lables.txt";
     private static final DetectorMode MODE = DetectorMode.TF_OD_API;
     private static final boolean MAINTAIN_ASPECT = false;
-    private static final Size DESIRED_PREVIEW_SIZE = new Size(640, 480);
+    private static final Size DESIRED_PREVIEW_SIZE = new Size(
+        (int) Settings.getInstance().getWidth(), (int) Settings.getInstance().getHeight());
     private static final float TEXT_SIZE_DIP = 10;
     OverlayView trackingOverlay;
     private Integer sensorOrientation;
@@ -102,9 +107,12 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     }
 
     private void doTest() {
-        File file = new File("storage/emulated/0/oahega photo/1");
+        int pass = 0;
+        int fail = 0;
+        long beginTime = System.currentTimeMillis();
+        File file = new File("SD-карта/oahega photo/1");
         if (file != null) {
-            Log.d("===", "list: " + Arrays.toString(file.listFiles()));
+//            Log.d("===", "list: " + Arrays.toString(file.listFiles()));
 //            Log.d("===", "list: " + file.listFiles().length);
             StringBuilder stringBuilder = new StringBuilder();
             for (int i = 0; i < file.listFiles().length; i += 1) {
@@ -112,7 +120,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                 try {
                     Bitmap bitmap =
                             BitmapFactory.decodeStream(new FileInputStream(image.toString()));
-                    Log.d("===", image.toString());
+//                    Log.d("===", image.toString());
                     ArrayList<Recognition> recognitions = classifier.recognizeImage(bitmap, 0);
                     Recognition r = getRec(recognitions);
                     String input = image.getName().split("_")[0];
@@ -122,20 +130,28 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                     stringBuilder.append(":");
                     stringBuilder.append(r.getConfidence() * 100);
                     stringBuilder.append("\n");
-                    Log.d("===", "\n input: " + input + "\t output: " + r.getTitle() + " \tresult: " + input.equals(r.getTitle()));
-                    for (Recognition recognition : recognitions) {
-                        Log.d("===", recognition.getTitle() + " : " + recognition.getConfidence() * 100);
-                    }
+//                    Log.d("===", "\n input: " + input + "\t output: " + r.getTitle() + " \tresult: " + input.equals(r.getTitle()));
+//                    for (Recognition recognition : recognitions) {
+//                        Log.d("===", recognition.getTitle() + " : " + recognition.getConfidence() * 100);
+//                    }
+//                    for (Recognition recognition : recognitions) {
+//                        Log.d("===", recognition.getTitle() + " : " + recognition.getConfidence() * 100);
+//                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
 
             }
+            long time = System.currentTimeMillis() - beginTime;
+            stringBuilder.append("\n");
+            stringBuilder.append("pass=").append(pass).append("\n");
+            stringBuilder.append("fail=").append(fail).append("\n");
+            stringBuilder.append("time= ").append(time);
             String stringResult = stringBuilder.toString();
             Writer writer = null;
             try {
                 writer = new BufferedWriter(new OutputStreamWriter(
-                        new FileOutputStream("storage/emulated/0/oahega photo/result.txt")));
+                    new FileOutputStream("SD-карта/oahega photo/result.txt")));
                 writer.write(stringBuilder.toString());
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
@@ -144,16 +160,18 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
             } finally {
                 try {
                     writer.close();
-                } catch (Exception ex) {/*ignore*/}
+                } catch (Exception ex) {
+                    ex.printStackTrace();/*ignore*/
+                }
             }
-            Log.d("+++", stringResult);
         } else {
-            Log.d("===", "file == null");
+//            Log.d("===", "file == null");
         }
     }
 
     @Override
     public void onPreviewSizeChosen(final Size size, final int rotation) {
+        LOGGER.d("onPreviewSizeChosen()");
         final float textSizePx =
                 TypedValue.applyDimension(
                         TypedValue.COMPLEX_UNIT_DIP, TEXT_SIZE_DIP, getResources().getDisplayMetrics());
@@ -173,9 +191,11 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                             TF_OD_API_INPUT_SIZE,
                             TF_OD_API_IS_QUANTIZED);
             cropSize = TF_OD_API_INPUT_SIZE;
+            LOGGER.d("detector created");
         } catch (final IOException e) {
+            LOGGER.d("detector is not created");
             e.printStackTrace();
-            LOGGER.e(e, "Exception initializing classifier!");
+            LOGGER.d("Exception initializing classifier!" + e.getMessage());
             Toast toast =
                     Toast.makeText(
                             getApplicationContext(), "Classifier could not be initialized", Toast.LENGTH_SHORT);
@@ -186,16 +206,18 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
             classifier = org.oahega.com.tflite.clasification.Classifier
                 .create(this, org.oahega.com.tflite.clasification.Classifier.Model.QUANTIZED,
                     org.oahega.com.tflite.clasification.Classifier.Device.CPU, 4);
+            LOGGER.d("classifier created");
         } catch (IOException e) {
+            LOGGER.d("classifier is not created");
             e.printStackTrace();
         }
         previewWidth = size.getWidth();
         previewHeight = size.getHeight();
 
         sensorOrientation = rotation - getScreenOrientation();
-        LOGGER.i("Camera orientation relative to screen canvas: %d", sensorOrientation);
+        LOGGER.d("Camera orientation relative to screen canvas: " + sensorOrientation);
 
-        LOGGER.i("Initializing at size %dx%d", previewWidth, previewHeight);
+        LOGGER.d("Initializing at size " + previewWidth + "х" + previewHeight);
         rgbFrameBitmap = Bitmap.createBitmap(previewWidth, previewHeight, Config.ARGB_8888);
         croppedBitmap = Bitmap.createBitmap(cropSize, cropSize, Config.ARGB_8888);
 
@@ -237,13 +259,12 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
             }
         }
         return rec;
-
-
     }
 
     @Override
     protected Size getDesiredPreviewFrameSize() {
-        return DESIRED_PREVIEW_SIZE;
+        return new Size(
+            (int) Settings.getInstance().getWidth(), (int) Settings.getInstance().getHeight());
     }
 
     // Which detection model to use: by default uses Tensorflow Object Detection API frozen
@@ -273,19 +294,20 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 //            doTest();
 //            firstRun = false;
 //        }
+        LOGGER.d("startProcess()");
         startTime = SystemClock.uptimeMillis();
         ArrayList<Bitmap> inputBitmaps = DataHelper.getInstance().getListOne();
         ArrayList<Recognition> outputs = new ArrayList<>();
         ArrayList<ArrayList<Recognition>> resultsForAvarageOnManyBitmaps = new ArrayList<>();
-        Log.d("===", "start process " + inputBitmaps.size() + " inputs");
+//        Log.d("===", "start process " + inputBitmaps.size() + " inputs");
         for (Bitmap bitmap : inputBitmaps) {
             List<Recognition> detects = detectFaces(cropBitmapDetection(bitmap));
-            Log.d("===", "detects on " + inputBitmaps.indexOf(bitmap) + " is " + detects.size());
+//            Log.d("===", "detects on " + inputBitmaps.indexOf(bitmap) + " is " + detects.size());
             ArrayList<Recognition> resultClassiofOnOneBitmap = new ArrayList<>();
             for (Recognition detect : detects) {
                 if (detect.getConfidence() * 100 > Settings.getInstance().getMinDetectionPercentToShow()) {
                     if ("face".equals(detect.getTitle())) {
-                        Log.d("===", "new 1 " + detect.getTitle() + " : " + detect.getConfidence());
+//                        Log.d("===", "new 1 " + detect.getTitle() + " : " + detect.getConfidence());
                         Matrix matrix = new Matrix();
 
                         matrix.postRotate(sensorOrientation);
@@ -293,29 +315,22 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                         Bitmap imageForClassif = cropBitmapClassification(detect, bitmap);
                         Bitmap rotatedBitmap = Bitmap.createBitmap(imageForClassif, 0, 0, imageForClassif.getWidth(), imageForClassif.getHeight(), matrix, true);
 
-//                        runOnUiThread(
-//                                new Runnable() {
-//                                    @Override
-//                                    public void run() {
-//                                        ((ImageView) findViewById(R.id.bitmap_preview)).setImageBitmap(rotatedBitmap);
-//                                    }
-//                                });
                         List<Recognition> classifs = classifier.recognizeImage(imageForClassif, 0);
                         Recognition bestClassif = getRec(classifs);
                         bestClassif.setLocation(detect.getLocation());
-                        Log.d("===", "new 2" + bestClassif.getTitle() + " : " + getRec(classifs).getConfidence() * 100);
+//                        Log.d("===", "new 2" + bestClassif.getTitle() + " : " + getRec(classifs).getConfidence() * 100);
                         if (bestClassif.getConfidence() * 100 > Settings.getInstance().getMinClassificationPercentToShow()) {
                             resultClassiofOnOneBitmap.add(bestClassif);
                         }
                     } else {
-                        Log.d("===", "new person " + detect.getConfidence() * 100);
+//                        Log.d("===", "new person " + detect.getConfidence() * 100);
                         outputs.add(detect);
                     }
                 }
             }
             resultsForAvarageOnManyBitmaps.add(resultClassiofOnOneBitmap);
         }
-        Log.d("===", "detects and classifs ended");
+//        Log.d("===", "detects and classifs ended");
         int minDetectsOnMitmap = resultsForAvarageOnManyBitmaps.get(0).size();
 
         for (int i = 0; i < resultsForAvarageOnManyBitmaps.size(); i++) {
@@ -331,10 +346,15 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 //            Log.d("===", "new Face " + getRec(results).getConfidence() * 100);
             outputs.add(getRec(results));
         }
+        if (!Settings.getInstance().isBeforeChange()) {
+            for (Recognition recognition : outputs) {
+                recognition.doubleValueWeight(
+                    (double) previewWidth / (double) Settings.getInstance().getWidth());
+                recognition.doubleValueHeight(
+                    (double) Settings.getInstance().getHeight() / (double) previewHeight);
+            }
+        }
 
-//        for (Recognition recognition : outputs) {
-//            recognition.setConfidence(recognition.getConfidence() * 100);
-//        }
 
         if (!useCamera2API && Settings.getInstance().isIsfront()) {
             for (Recognition output : outputs) {
@@ -343,6 +363,21 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         }
         showResults(outputs, inputBitmaps.get(0));
 
+    }
+
+    public static Point getScreenSize() {
+        int pxWidth;
+        int pxHeight;
+        DisplayMetrics outMetrics = Resources.getSystem().getDisplayMetrics();
+        if (outMetrics.widthPixels < outMetrics.heightPixels
+            || outMetrics.widthPixels > outMetrics.heightPixels) {
+            pxWidth = outMetrics.widthPixels;
+            pxHeight = outMetrics.heightPixels;
+        } else {
+            pxWidth = outMetrics.heightPixels;
+            pxHeight = outMetrics.widthPixels;
+        }
+        return new Point(pxWidth, pxHeight);
     }
 
     private void changeOutput(Recognition recognition) {
@@ -357,10 +392,10 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
     private void showResults(ArrayList<Recognition> results, Bitmap bitmap) {
 
-        Log.d("===", "showResults");
-        for (Recognition recognition : results) {
-            Log.d("===", "title " + recognition.getTitle() + " coeficient: " + recognition.getConfidence());
-        }
+//        Log.d("===", "showResults");
+//        for (Recognition recognition : results) {
+//            Log.d("===", "title " + recognition.getTitle() + " coeficient: " + recognition.getConfidence());
+//        }
         bitmap = Bitmap.createBitmap(bitmap);
         final Canvas canvas = new Canvas(bitmap);
         final Paint paint = new Paint();
@@ -396,14 +431,14 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         Bitmap finalBitmap = bitmap;
         runOnUiThread(
                 () -> {
-                    showFrameInfo(previewWidth + "x" + previewHeight);
-                    showCropInfo(finalBitmap.getWidth() + "x" + finalBitmap.getHeight());
-                    showInference(lastProcessingTimeMs + "ms");
+//                    showFrameInfo(previewWidth + "x" + previewHeight);
+//                    showCropInfo(finalBitmap.getWidth() + "x" + finalBitmap.getHeight());
+//                    showInference(lastProcessingTimeMs + "ms");
                 });
         readyForNextImage();
         isProcessingFrame = false;
         DataHelper.getInstance().getListOne().clear();
-        Log.d("===", "end procees");
+//        Log.d("===", "end procees");
     }
 
     private ArrayList<Recognition> getResultsForShow(ArrayList<ArrayList<Recognition>> mainList) {

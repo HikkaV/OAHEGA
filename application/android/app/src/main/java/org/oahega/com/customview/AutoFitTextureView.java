@@ -17,8 +17,12 @@
 package org.oahega.com.customview;
 
 import android.content.Context;
+import android.content.res.Resources;
+import android.graphics.Point;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.view.TextureView;
+import org.oahega.com.utils.Settings;
 
 /** A {@link TextureView} that can be adjusted to a specified aspect ratio. */
 public class AutoFitTextureView extends TextureView {
@@ -54,17 +58,38 @@ public class AutoFitTextureView extends TextureView {
     requestLayout();
   }
 
+  public static Point getScreenSize() {
+    int pxWidth;
+    int pxHeight;
+    DisplayMetrics outMetrics = Resources.getSystem().getDisplayMetrics();
+    if (outMetrics.widthPixels < outMetrics.heightPixels
+        || outMetrics.widthPixels > outMetrics.heightPixels) {
+      pxWidth = outMetrics.widthPixels;
+      pxHeight = outMetrics.heightPixels;
+    } else {
+      pxWidth = outMetrics.heightPixels;
+      pxHeight = outMetrics.widthPixels;
+    }
+    return new Point(pxWidth, pxHeight);
+  }
+
   @Override
   protected void onMeasure(final int widthMeasureSpec, final int heightMeasureSpec) {
     super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     final int width = MeasureSpec.getSize(widthMeasureSpec);
     final int height = MeasureSpec.getSize(heightMeasureSpec);
     if (0 == ratioWidth || 0 == ratioHeight) {
+      Settings.getInstance().setHeight(height);
+      Settings.getInstance().setWidth(width);
       setMeasuredDimension(width, height);
     } else {
-      if (width < height * ratioWidth / ratioHeight) {
+      if (width > height * ratioWidth / ratioHeight) {
+        Settings.getInstance().setWidth(width);
+        Settings.getInstance().setHeight(width * ratioHeight / ratioWidth);
         setMeasuredDimension(width, width * ratioHeight / ratioWidth);
       } else {
+        Settings.getInstance().setWidth(height * ratioWidth / ratioHeight);
+        Settings.getInstance().setHeight(height);
         setMeasuredDimension(height * ratioWidth / ratioHeight, height);
       }
     }

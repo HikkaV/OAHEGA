@@ -3,6 +3,7 @@ package org.oahega.com;
 import android.Manifest;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.hardware.camera2.CameraAccessException;
@@ -21,6 +22,7 @@ import android.os.Trace;
 
 import androidx.annotation.NonNull;
 
+import androidx.fragment.app.FragmentManager;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -32,14 +34,11 @@ import android.view.Surface;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
-import android.widget.CompoundButton;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.nio.ByteBuffer;
 
+import org.oahega.com.preference.PreferenceBottomSheetDialogFragment;
 import org.oahega.com.utils.Settings;
 import org.oahega.com.env.ImageUtils;
 import org.oahega.com.env.Logger;
@@ -47,9 +46,9 @@ import org.oahega.com.env.Logger;
 public abstract class CameraActivity extends AppCompatActivity
         implements OnImageAvailableListener,
         Camera.PreviewCallback,
-        CompoundButton.OnCheckedChangeListener,
         View.OnClickListener {
-    private static final Logger LOGGER = new Logger();
+
+  private static final Logger LOGGER = new Logger("CameraActivity");
 
     private static final int PERMISSIONS_REQUEST = 1;
 
@@ -67,112 +66,40 @@ public abstract class CameraActivity extends AppCompatActivity
     private Runnable postInferenceCallback;
     private Runnable imageConverter;
 
-    private LinearLayout bottomSheetLayout;
-    private LinearLayout gestureLayout;
-    private BottomSheetBehavior sheetBehavior;
-
-    protected TextView frameValueTextView, cropValueTextView, inferenceTimeTextView;
-    protected ImageView bottomSheetArrowImageView;
-    private ImageView plusImageView, minusImageView, percentCPlusImageView, percentCMinusImageView, percentDPlusImageView, percentDMinusImageView;
-    private SwitchCompat apiSwitchCompat;
-    private TextView threadsTextView, percentsClassifTextView, percentsDetectionTextView, avarageTextView;
+  private long time = 3_000;
+  private long lastTime = System.currentTimeMillis();
+  private Handler handler2 = new Handler();
+  private Runnable run = new Runnable() {
+    @Override
+    public void run() {
+      if (System.currentTimeMillis() - lastTime > time) {
+        finish();
+        startActivity(intent);
+      } else {
+        handler2.postDelayed(this::run, 1_000);
+      }
+    }
+  };
+  private Intent intent = null;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         LOGGER.d("onCreate " + this);
         super.onCreate(null);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
         setContentView(R.layout.activity_camera);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
-
+      intent = getIntent();
         if (hasPermission()) {
             setFragment();
         } else {
             requestPermission();
         }
 
-        threadsTextView = findViewById(R.id.threads);
-        plusImageView = findViewById(R.id.plus);
-        minusImageView = findViewById(R.id.minus);
-        apiSwitchCompat = findViewById(R.id.api_info_switch);
-        bottomSheetLayout = findViewById(R.id.bottom_sheet_layout);
-        gestureLayout = findViewById(R.id.gesture_layout);
-        sheetBehavior = BottomSheetBehavior.from(bottomSheetLayout);
-        bottomSheetArrowImageView = findViewById(R.id.bottom_sheet_arrow);
-
-        percentsClassifTextView = findViewById(R.id.c_percents);
-        percentsDetectionTextView = findViewById(R.id.d_percents);
-        avarageTextView = findViewById(R.id.avarage_percents);
-        percentCPlusImageView = findViewById(R.id.p_c_plus);
-        percentDPlusImageView = findViewById(R.id.p_d_plus);
-        percentCMinusImageView = findViewById(R.id.p_c_minus);
-        percentDMinusImageView = findViewById(R.id.p_d_minus);
-        findViewById(R.id.avarage_minus).setOnClickListener(this);
-        findViewById(R.id.avarage_plus).setOnClickListener(this);
-        findViewById(R.id.btn_change_camera).setOnClickListener(this);
-
-
-        ViewTreeObserver vto = gestureLayout.getViewTreeObserver();
-        vto.addOnGlobalLayoutListener(
-                new ViewTreeObserver.OnGlobalLayoutListener() {
-                    @Override
-                    public void onGlobalLayout() {
-                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
-                            gestureLayout.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-                        } else {
-                            gestureLayout.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                        }
-                        //                int width = bottomSheetLayout.getMeasuredWidth();
-                        int height = gestureLayout.getMeasuredHeight();
-
-                        sheetBehavior.setPeekHeight(height);
-                    }
-                });
-        sheetBehavior.setHideable(false);
-
-        sheetBehavior.setBottomSheetCallback(
-                new BottomSheetBehavior.BottomSheetCallback() {
-                    @Override
-                    public void onStateChanged(@NonNull View bottomSheet, int newState) {
-                        switch (newState) {
-                            case BottomSheetBehavior.STATE_HIDDEN:
-                                break;
-                            case BottomSheetBehavior.STATE_EXPANDED: {
-                                bottomSheetArrowImageView.setImageResource(R.drawable.icn_chevron_down);
-                            }
-                            break;
-                            case BottomSheetBehavior.STATE_COLLAPSED: {
-                                bottomSheetArrowImageView.setImageResource(R.drawable.icn_chevron_up);
-                            }
-                            break;
-                            case BottomSheetBehavior.STATE_DRAGGING:
-                                break;
-                            case BottomSheetBehavior.STATE_SETTLING:
-                                bottomSheetArrowImageView.setImageResource(R.drawable.icn_chevron_up);
-                                break;
-                        }
-                    }
-
-                    @Override
-                    public void onSlide(@NonNull View bottomSheet, float slideOffset) {
-                    }
-                });
-
-        frameValueTextView = findViewById(R.id.frame_info);
-        cropValueTextView = findViewById(R.id.crop_info);
-        inferenceTimeTextView = findViewById(R.id.inference_info);
-
-        apiSwitchCompat.setOnCheckedChangeListener(this);
-
-        plusImageView.setOnClickListener(this);
-        percentCPlusImageView.setOnClickListener(this);
-        percentDPlusImageView.setOnClickListener(this);
-        minusImageView.setOnClickListener(this);
-        percentCMinusImageView.setOnClickListener(this);
-        percentDMinusImageView.setOnClickListener(this);
+      findViewById(R.id.settings).setOnClickListener(this);
+      handler2.postDelayed(run, 1_000);
     }
 
     protected int[] getRgbBytes() {
@@ -185,8 +112,10 @@ public abstract class CameraActivity extends AppCompatActivity
      */
     @Override
     public void onPreviewFrame(final byte[] bytes, final Camera camera) {
+      LOGGER.d("onPreviewFrame()");
         if (isProcessingFrame) {
-            LOGGER.w("Dropping frame!");
+          LOGGER.d("onPreviewFrame -> Dropping frame!");
+          lastTime = System.currentTimeMillis();
             return;
         }
 
@@ -200,7 +129,8 @@ public abstract class CameraActivity extends AppCompatActivity
                 onPreviewSizeChosen(new Size(previewSize.width, previewSize.height), 90);
             }
         } catch (final Exception e) {
-            LOGGER.e(e, "Exception!");
+          LOGGER.d("Exception!" + e.getMessage());
+          e.printStackTrace();
             return;
         }
 
@@ -227,8 +157,11 @@ public abstract class CameraActivity extends AppCompatActivity
      */
     @Override
     public void onImageAvailable(final ImageReader reader) {
+      LOGGER.d("onImageAvailable ");
+
         // We need wait until we have some size from onPreviewSizeChosen
         if (previewWidth == 0 || previewHeight == 0) { // todo
+          LOGGER.d("onImageAvailable previewWidth == 0 || previewHeight == 0 ");
             return;
         }
         if (rgbBytes == null) {
@@ -240,10 +173,12 @@ public abstract class CameraActivity extends AppCompatActivity
                 if (image != null) {
                     image.close();
                 }
-                LOGGER.w("Dropping frame!");
+              LOGGER.d("onImageAvailable -> Dropping frame!");
+              lastTime = System.currentTimeMillis();
                 return;
             }
             if (image == null) {
+              LOGGER.d("onImageAvailable image == null");
                 return;
             }
 
@@ -277,7 +212,8 @@ public abstract class CameraActivity extends AppCompatActivity
             newBitmap();
 
         } catch (final Exception e) {
-            LOGGER.e(e, "Exception!");
+          LOGGER.d("Exception! " + e.getMessage());
+          e.printStackTrace();
             Trace.endSection();
             return;
         }
@@ -310,7 +246,8 @@ public abstract class CameraActivity extends AppCompatActivity
             handlerThread = null;
             handler = null;
         } catch (final InterruptedException e) {
-            LOGGER.e(e, "Exception!");
+          LOGGER.d("Exception! " + e.getMessage());
+          e.printStackTrace();
         }
 
         super.onPause();
@@ -380,6 +317,7 @@ public abstract class CameraActivity extends AppCompatActivity
     }
 
     private String chooseCamera(boolean front) {
+      LOGGER.d("chooseCamera()");
         final CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try {
             for (final String cameraId : manager.getCameraIdList()) {
@@ -408,23 +346,24 @@ public abstract class CameraActivity extends AppCompatActivity
                         (facing == CameraCharacteristics.LENS_FACING_EXTERNAL)
                                 || isHardwareLevelSupported(
                                 characteristics, CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_FULL);
-                LOGGER.i("Camera API lv2?: %s", useCamera2API);
+              LOGGER.d("Camera API enable: " + useCamera2API);
+              LOGGER.d("camera id = " + cameraId);
                 return cameraId;
             }
         } catch (CameraAccessException e) {
-            LOGGER.e(e, "Not allowed to access camera");
+          e.printStackTrace();
+          LOGGER.d(" Not allowed to access camera " + e.getMessage());
         }
-
+      LOGGER.d("chooseCamera() return null");
         return null;
     }
 
-    protected void setFragment() {
+  public void setFragment() {
+    LOGGER.d("setFragment()");
         String cameraId = chooseCamera(!Settings.getInstance().isIsfront());
 
         Fragment fragment;
         if (useCamera2API) {
-            LOGGER.i("Camera API lv2?: %s", useCamera2API);
-
             CameraConnectionFragment camera2Fragment =
                     CameraConnectionFragment.newInstance(
                             new CameraConnectionFragment.ConnectionCallback() {
@@ -442,11 +381,10 @@ public abstract class CameraActivity extends AppCompatActivity
             camera2Fragment.setCamera(cameraId);
             fragment = camera2Fragment;
         } else {
-            LOGGER.i("Camera API lv2?: %s", useCamera2API);
             fragment =
                     new LegacyCameraConnectionFragment(this, getLayoutId(), getDesiredPreviewFrameSize());
         }
-
+    LOGGER.d("start fragment transaction");
         getFragmentManager().beginTransaction().replace(R.id.container, fragment).commit();
     }
 
@@ -456,7 +394,7 @@ public abstract class CameraActivity extends AppCompatActivity
         for (int i = 0; i < planes.length; ++i) {
             final ByteBuffer buffer = planes[i].getBuffer();
             if (yuvBytes[i] == null) {
-                LOGGER.d("Initializing buffer %d at size %d", i, buffer.capacity());
+              LOGGER.d("Initializing buffer " + i + " at size " + buffer.capacity());
                 yuvBytes[i] = new byte[buffer.capacity()];
             }
             buffer.get(yuvBytes[i]);
@@ -486,107 +424,22 @@ public abstract class CameraActivity extends AppCompatActivity
         }
     }
 
-    @Override
-    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        setUseNNAPI(isChecked);
-        if (isChecked) apiSwitchCompat.setText("NNAPI");
-        else apiSwitchCompat.setText("TFLITE");
-    }
 
     @Override
     public void onClick(View v) {
+      if (v.getId() == R.id.settings) {
+        PreferenceBottomSheetDialogFragment dialogFragment = new PreferenceBottomSheetDialogFragment();
+        FragmentManager fm = getSupportFragmentManager();
+        dialogFragment.show(fm, "test");
+      }
         if (v.getId() == R.id.btn_change_camera) {
+          LOGGER.d("on click: btn_change_camera");
             Settings.getInstance().setIsfront(!Settings.getInstance().isIsfront());
             setFragment();
             return;
         }
-        if (v.getId() == R.id.plus) {
-            String threads = threadsTextView.getText().toString().trim();
-            int numThreads = Integer.parseInt(threads);
-            if (numThreads >= 9) return;
-            numThreads++;
-            threadsTextView.setText(String.valueOf(numThreads));
-            setNumThreads(numThreads);
-        } else if (v.getId() == R.id.minus) {
-            String threads = threadsTextView.getText().toString().trim();
-            int numThreads = Integer.parseInt(threads);
-            if (numThreads == 1) {
-                return;
-            }
-            numThreads--;
-            threadsTextView.setText(String.valueOf(numThreads));
-            setNumThreads(numThreads);
-        }
-        if (v.getId() == R.id.p_c_plus) {
-            String threads = percentsClassifTextView.getText().toString().trim();
-            int percents = Integer.parseInt(threads);
-            if (percents == 100) {
-                return;
-            }
-            percents += 1;
-            percentsClassifTextView.setText(String.valueOf(percents));
-            Settings.getInstance().setMinClassificationPercentToShow(percents);
-        } else if (v.getId() == R.id.p_c_minus) {
-            String percent = percentsClassifTextView.getText().toString().trim();
-            int percents = Integer.parseInt(percent);
-            if (percents == 0) {
-                return;
-            }
-            percents -= 1;
-            percentsClassifTextView.setText(String.valueOf(percents));
-            Settings.getInstance().setMinClassificationPercentToShow(percents);
-        }
-        if (v.getId() == R.id.p_d_plus) {
-            String threads = percentsDetectionTextView.getText().toString().trim();
-            int percents = Integer.parseInt(threads);
-            if (percents == 100) {
-                return;
-            }
-            percents += 1;
-            percentsDetectionTextView.setText(String.valueOf(percents));
-            Settings.getInstance().setMinDetectionPercentToShow(percents);
-        } else if (v.getId() == R.id.p_d_minus) {
-            String percent = percentsDetectionTextView.getText().toString().trim();
-            int percents = Integer.parseInt(percent);
-            if (percents == 0) {
-                return;
-            }
-            percents -= 1;
-            percentsDetectionTextView.setText(String.valueOf(percents));
-            Settings.getInstance().setMinDetectionPercentToShow(percents);
-        }
-        if (v.getId() == R.id.avarage_plus) {
-            String threads = avarageTextView.getText().toString().trim();
-            int percents = Integer.parseInt(threads);
-            if (percents == 100) {
-                return;
-            }
-            percents += 1;
-            avarageTextView.setText(String.valueOf(percents));
-            Settings.getInstance().setNumOfAvarage(percents);
-        } else if (v.getId() == R.id.avarage_minus) {
-            String percent = avarageTextView.getText().toString().trim();
-            int percents = Integer.parseInt(percent);
-            if (percents == 0) {
-                return;
-            }
-            percents -= 1;
-            avarageTextView.setText(String.valueOf(percents));
-            Settings.getInstance().setNumOfAvarage(percents);
-        }
     }
 
-    protected void showFrameInfo(String frameInfo) {
-        frameValueTextView.setText(frameInfo);
-    }
-
-    protected void showCropInfo(String cropInfo) {
-        cropValueTextView.setText(cropInfo);
-    }
-
-    protected void showInference(String inferenceTime) {
-        inferenceTimeTextView.setText(inferenceTime);
-    }
 
     protected abstract void onPreviewSizeChosen(final Size size, final int rotation);
 

@@ -60,7 +60,7 @@ public class ClassifierFloatMobileNet extends Classifier {
 
   @Override
   protected String getLabelPath() {
-//    return "emotions_distiled.txt";
+//    return "emotions_distilled.txt";
     return "emotions_lables.txt";
   }
 

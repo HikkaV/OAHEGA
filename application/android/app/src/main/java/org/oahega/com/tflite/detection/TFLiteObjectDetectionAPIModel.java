@@ -46,7 +46,8 @@ import org.oahega.com.env.Logger;
  * github.com/tensorflow/models/tree/master/research/object_detection
  */
 public class TFLiteObjectDetectionAPIModel implements Classifier {
-  private static final Logger LOGGER = new Logger();
+
+  private static Logger LOGGER = new Logger("TFLiteObjectDetectionAPIModel");
 
   // Only return this many results.
   private static final int NUM_DETECTIONS = 10;
@@ -116,7 +117,7 @@ public class TFLiteObjectDetectionAPIModel implements Classifier {
     br = new BufferedReader(new InputStreamReader(labelsInput));
     String line;
     while ((line = br.readLine()) != null) {
-      LOGGER.w(line);
+      LOGGER.d(line);
       d.labels.add(line);
     }
     br.close();
@@ -219,7 +220,6 @@ public class TFLiteObjectDetectionAPIModel implements Classifier {
                         outputScores[0][i],
                         detection));
       } catch (ArrayIndexOutOfBoundsException e){
-        Log.d("+++" , e.getLocalizedMessage() + " \n " + e.getMessage());
         if(BuildConfig.BUILD_TYPE.equals("debug")) {
           e.printStackTrace();
         }

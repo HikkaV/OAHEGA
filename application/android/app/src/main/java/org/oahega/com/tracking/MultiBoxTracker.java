@@ -57,7 +57,7 @@ public class MultiBoxTracker {
     Color.parseColor("#0D0068")
   };
   final List<Pair<Float, RectF>> screenRects = new LinkedList<>();
-  private final Logger logger = new Logger();
+  private final Logger logger = new Logger("MultiBoxTracker");
   private final Queue<Integer> availableColors = new LinkedList<>();
   private final List<TrackedRecognition> trackedObjects = new LinkedList<>();
   private final Paint boxPaint = new Paint();
@@ -112,7 +112,7 @@ public class MultiBoxTracker {
   }
 
   public synchronized void trackResults(final List<Recognition> results, final long timestamp) {
-    logger.i("Processing %d results from %d", results.size(), timestamp);
+    logger.d("Processing " + results.size() + " results from " + timestamp);
     processResults(results);
   }
 
@@ -175,7 +175,7 @@ public class MultiBoxTracker {
       screenRects.add(new Pair<>(result.getConfidence(), detectionScreenRect));
 
       if (detectionFrameRect.width() < MIN_SIZE || detectionFrameRect.height() < MIN_SIZE) {
-        logger.w("Degenerate rectangle! " + detectionFrameRect);
+        logger.d("Degenerate rectangle! " + detectionFrameRect);
         continue;
       }
 

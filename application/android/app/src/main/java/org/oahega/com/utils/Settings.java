@@ -7,6 +7,9 @@ public class Settings {
     private int minDetectionPercentToShow;
     private int numOfAvarage;
     private boolean isfront = false;
+    private long width = 0;
+    private long height = 0;
+    private boolean isBeforChange = true;
 
     private Settings(){
         this.minClassificationPercentToShow = 70;
@@ -52,6 +55,31 @@ public class Settings {
 
     public void setNumOfAvarage(int numOfAvarage) {
         this.numOfAvarage = numOfAvarage;
+    }
+
+    public long getWidth() {
+        return width;
+    }
+
+    public void setWidth(long width) {
+        this.width = width;
+    }
+
+    public long getHeight() {
+        return height;
+    }
+
+    public void setHeight(long height) {
+        this.height = height;
+    }
+
+    public void setBeforChange(boolean beforChange) {
+        isBeforChange = beforChange;
+    }
+
+    public boolean isBeforeChange() {
+
+        return isBeforChange;
     }
 }
 

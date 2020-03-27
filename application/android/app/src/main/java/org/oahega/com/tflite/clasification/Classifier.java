@@ -48,7 +48,7 @@ import java.util.PriorityQueue;
 
 /** A classifier specialized to label images using TensorFlow Lite. */
 public abstract class Classifier {
-  private static final Logger LOGGER = new Logger();
+  private static final Logger LOGGER = new Logger("Classifier");
 
   /** The model type used for classification. */
   public enum Model {

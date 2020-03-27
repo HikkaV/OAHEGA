@@ -56,6 +56,15 @@ public class Recognition {
         this.location = location;
     }
 
+    public void doubleValueHeight(double value) {
+        location = new RectF(location.left, Math.round(location.top * value),
+            location.right, Math.round(location.bottom * value));
+    }
+
+    public void doubleValueWeight(double value) {
+        location = new RectF(Math.round(location.left * value), location.top,
+            Math.round(location.right * value), location.bottom);
+    }
     @Override
     public String toString() {
         String resultString = "";

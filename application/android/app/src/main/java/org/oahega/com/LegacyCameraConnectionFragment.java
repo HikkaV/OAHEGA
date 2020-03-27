@@ -17,12 +17,15 @@ package org.oahega.com;
  */
 
 import android.app.Fragment;
+import android.content.res.Resources;
+import android.graphics.Point;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.util.DisplayMetrics;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.LayoutInflater;
@@ -40,7 +43,8 @@ import org.oahega.com.env.ImageUtils;
 import org.oahega.com.env.Logger;
 
 public class LegacyCameraConnectionFragment extends Fragment {
-    private static final Logger LOGGER = new Logger();
+
+    private static final Logger LOGGER = new Logger("LegacyCameraConnectionFragment");
     /**
      * Conversion from screen rotation to JPEG orientation.
      */
@@ -101,6 +105,7 @@ public class LegacyCameraConnectionFragment extends Fragment {
                         camera.setParameters(parameters);
                         camera.setPreviewTexture(texture);
                     } catch (IOException exception) {
+                        exception.printStackTrace();
                         camera.release();
                     }
 
@@ -133,8 +138,27 @@ public class LegacyCameraConnectionFragment extends Fragment {
      */
     private HandlerThread backgroundThread;
 
-    public LegacyCameraConnectionFragment(
+
+    public static Point getScreenSize() {
+        int pxWidth;
+        int pxHeight;
+        DisplayMetrics outMetrics = Resources.getSystem().getDisplayMetrics();
+        if (outMetrics.widthPixels < outMetrics.heightPixels
+            || outMetrics.widthPixels > outMetrics.heightPixels) {
+            pxWidth = outMetrics.widthPixels;
+            pxHeight = outMetrics.heightPixels;
+        } else {
+            pxWidth = outMetrics.heightPixels;
+            pxHeight = outMetrics.widthPixels;
+        }
+        return new Point(pxWidth, pxHeight);
+    }
+    public LegacyCameraConnectionFragment() {
+    }
+
+    public LegacyCameraConnectionFragment( // todo into bundle
             final Camera.PreviewCallback imageListener, final int layout, final Size desiredSize) {
+        LOGGER.d("LegacyCameraConnectionFragment()");
         this.imageListener = imageListener;
         this.layout = layout;
         this.desiredSize = desiredSize;
@@ -174,6 +198,7 @@ public class LegacyCameraConnectionFragment extends Fragment {
 
     @Override
     public void onPause() {
+        LOGGER.d("onPause()");
         stopCamera();
         stopBackgroundThread();
         super.onPause();
@@ -196,7 +221,8 @@ public class LegacyCameraConnectionFragment extends Fragment {
             backgroundThread.join();
             backgroundThread = null;
         } catch (final InterruptedException e) {
-            LOGGER.e(e, "Exception!");
+            e.printStackTrace();
+            LOGGER.d("stopBackgroundThread");
         }
     }
 

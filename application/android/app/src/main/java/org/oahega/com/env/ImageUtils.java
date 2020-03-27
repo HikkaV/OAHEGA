@@ -23,6 +23,7 @@ import android.util.Log;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Locale;
 
 /** Utility class for manipulating images. */
 public class ImageUtils {
@@ -31,7 +32,7 @@ public class ImageUtils {
   static final int kMaxChannelValue = 262143;
 
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = new Logger();
+  private static final Logger LOGGER = new Logger("ImageUtils");
 
   /**
    * Utility method to compute the allocated size in bytes of a YUV420SP image of the given
@@ -66,11 +67,13 @@ public class ImageUtils {
   public static void saveBitmap(final Bitmap bitmap, final String filename) {
     final String root =
         Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "tensorflow";
-    LOGGER.i("Saving %dx%d bitmap to %s.", bitmap.getWidth(), bitmap.getHeight(), root);
+    LOGGER.d(String
+        .format(Locale.getDefault(), "Saving %dx%d bitmap to %s.", bitmap.getWidth(),
+            bitmap.getHeight(), root));
     final File myDir = new File(root);
 
     if (!myDir.mkdirs()) {
-      LOGGER.i("Make dir failed");
+      LOGGER.d("Make dir failed");
     }
     final String fname = filename;
     final File file = new File(myDir, fname);
@@ -80,20 +83,17 @@ public class ImageUtils {
       try {
         file.createNewFile();
       } catch (IOException e) {
-        Log.d("+++",e.getLocalizedMessage());
         e.printStackTrace();
       }
     }
-    Log.d("+++", file.getAbsolutePath());
     try {
       final FileOutputStream out = new FileOutputStream(file);
       bitmap.compress(Bitmap.CompressFormat.PNG, 99, out);
       out.flush();
       out.close();
     } catch (final Exception e) {
-      Log.d("+++", e.getMessage());
-
-      LOGGER.e(e, "Exception!");
+      e.printStackTrace();
+      LOGGER.d("FileOutputStream: " + file + " : " + e.getMessage());
     }
   }
 
@@ -188,7 +188,7 @@ public class ImageUtils {
 
     if (applyRotation != 0) {
       if (applyRotation % 90 != 0) {
-        LOGGER.w("Rotation of %d % 90 != 0", applyRotation);
+        LOGGER.d(String.format(Locale.getDefault(), "Rotation of %d % 90 != 0", applyRotation));
       }
 
       // Translate so center of image is at origin.
