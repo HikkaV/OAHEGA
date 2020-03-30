@@ -78,8 +78,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     private static final String TF_OD_API_LABELS_FILE = "file:///android_asset/detection_lables.txt";
     private static final DetectorMode MODE = DetectorMode.TF_OD_API;
     private static final boolean MAINTAIN_ASPECT = false;
-    private static final Size DESIRED_PREVIEW_SIZE = new Size(
-        (int) Settings.getInstance().getWidth(), (int) Settings.getInstance().getHeight());
+    private static final Size DESIRED_PREVIEW_SIZE = new Size(640, 320);
     private static final float TEXT_SIZE_DIP = 10;
     OverlayView trackingOverlay;
     private Integer sensorOrientation;
@@ -263,8 +262,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
     @Override
     protected Size getDesiredPreviewFrameSize() {
-        return new Size(
-            (int) Settings.getInstance().getWidth(), (int) Settings.getInstance().getHeight());
+      return DESIRED_PREVIEW_SIZE;
     }
 
     // Which detection model to use: by default uses Tensorflow Object Detection API frozen
@@ -346,23 +344,21 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 //            Log.d("===", "new Face " + getRec(results).getConfidence() * 100);
             outputs.add(getRec(results));
         }
-        if (!Settings.getInstance().isBeforeChange()) {
-            for (Recognition recognition : outputs) {
-                recognition.doubleValueWeight(
-                    (double) previewWidth / (double) Settings.getInstance().getWidth());
-                recognition.doubleValueHeight(
-                    (double) Settings.getInstance().getHeight() / (double) previewHeight);
-            }
-        }
 
-
-        if (!useCamera2API && Settings.getInstance().isIsfront()) {
-            for (Recognition output : outputs) {
-                changeOutput(output);
-            }
+      if (!useCamera2API && Settings.getInstance().isIsfront()) {
+        for (Recognition output : outputs) {
+          changeOutput(output);
         }
+      }
+      for (Recognition recognition : outputs) {
+        Log.d("+++", "top before = " + recognition.getLocation().top + " left before:" + recognition.getLocation().left);
+        Log.d("+++", "double on: " + Settings.getInstance().getWidth());
+        recognition.doubleValueWeight(Settings.getInstance().getWidth());
+        recognition.doubleValueHeight(Settings.getInstance().getWidth());
+        Log.d("+++", "top after = " + recognition.getLocation().top + " left after:" + recognition.getLocation().left);
+      }
+
         showResults(outputs, inputBitmaps.get(0));
-
     }
 
     public static Point getScreenSize() {
@@ -428,13 +424,6 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
         lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
 
-        Bitmap finalBitmap = bitmap;
-        runOnUiThread(
-                () -> {
-//                    showFrameInfo(previewWidth + "x" + previewHeight);
-//                    showCropInfo(finalBitmap.getWidth() + "x" + finalBitmap.getHeight());
-//                    showInference(lastProcessingTimeMs + "ms");
-                });
         readyForNextImage();
         isProcessingFrame = false;
         DataHelper.getInstance().getListOne().clear();

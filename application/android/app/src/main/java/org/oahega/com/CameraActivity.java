@@ -91,7 +91,7 @@ public abstract class CameraActivity extends AppCompatActivity
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
-      intent = getIntent();
+        intent = getIntent();
         if (hasPermission()) {
             setFragment();
         } else {
@@ -256,6 +256,7 @@ public abstract class CameraActivity extends AppCompatActivity
     @Override
     public synchronized void onStop() {
         LOGGER.d("onStop " + this);
+      handler2.removeCallbacksAndMessages(null);
         super.onStop();
     }
 

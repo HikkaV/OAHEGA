@@ -1,5 +1,9 @@
 package org.oahega.com.utils;
 
+import android.content.res.Resources;
+import android.graphics.Point;
+import android.util.DisplayMetrics;
+
 public class Settings {
 
     private static Settings settings;
@@ -7,8 +11,9 @@ public class Settings {
     private int minDetectionPercentToShow;
     private int numOfAvarage;
     private boolean isfront = false;
-    private long width = 0;
-    private long height = 0;
+    private double width = 0;
+    private double height = 0;
+    private double ratio = 0.0;
     private boolean isBeforChange = true;
 
     private Settings(){
@@ -23,6 +28,22 @@ public class Settings {
             settings = new Settings();
         }
         return settings;
+    }
+
+
+    public static Point getScreenSize() {
+        int pxWidth;
+        int pxHeight;
+        DisplayMetrics outMetrics = Resources.getSystem().getDisplayMetrics();
+        if (outMetrics.widthPixels < outMetrics.heightPixels
+            || outMetrics.widthPixels > outMetrics.heightPixels) {
+            pxWidth = outMetrics.widthPixels;
+            pxHeight = outMetrics.heightPixels;
+        } else {
+            pxWidth = outMetrics.heightPixels;
+            pxHeight = outMetrics.widthPixels;
+        }
+        return new Point(pxWidth, pxHeight);
     }
 
     public int getMinClassificationPercentToShow() {
@@ -57,19 +78,19 @@ public class Settings {
         this.numOfAvarage = numOfAvarage;
     }
 
-    public long getWidth() {
+    public double getWidth() {
         return width;
     }
 
-    public void setWidth(long width) {
+    public void setWidth(double width) {
         this.width = width;
     }
 
-    public long getHeight() {
+    public double getHeight() {
         return height;
     }
 
-    public void setHeight(long height) {
+    public void setHeight(double height) {
         this.height = height;
     }
 
@@ -80,6 +101,14 @@ public class Settings {
     public boolean isBeforeChange() {
 
         return isBeforChange;
+    }
+
+    public double getRatio() {
+        return ratio;
+    }
+
+    public void setRatio(double ratio) {
+        this.ratio = ratio;
     }
 }
 

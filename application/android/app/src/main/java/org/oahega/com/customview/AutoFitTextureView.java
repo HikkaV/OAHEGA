@@ -21,6 +21,7 @@ import android.content.res.Resources;
 import android.graphics.Point;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.TextureView;
 import org.oahega.com.utils.Settings;
 
@@ -58,38 +59,53 @@ public class AutoFitTextureView extends TextureView {
     requestLayout();
   }
 
-  public static Point getScreenSize() {
-    int pxWidth;
-    int pxHeight;
-    DisplayMetrics outMetrics = Resources.getSystem().getDisplayMetrics();
-    if (outMetrics.widthPixels < outMetrics.heightPixels
-        || outMetrics.widthPixels > outMetrics.heightPixels) {
-      pxWidth = outMetrics.widthPixels;
-      pxHeight = outMetrics.heightPixels;
-    } else {
-      pxWidth = outMetrics.heightPixels;
-      pxHeight = outMetrics.widthPixels;
-    }
-    return new Point(pxWidth, pxHeight);
-  }
-
   @Override
   protected void onMeasure(final int widthMeasureSpec, final int heightMeasureSpec) {
     super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     final int width = MeasureSpec.getSize(widthMeasureSpec);
     final int height = MeasureSpec.getSize(heightMeasureSpec);
     if (0 == ratioWidth || 0 == ratioHeight) {
+      Log.d("+++1", "ratioWidth: " + ratioWidth);
+      Log.d("+++1", "ratioHeight: " + ratioHeight);
+      Log.d("+++1", "width: " + width);
+      Log.d("+++1", "Height: " + height);
+      Log.d("+++1", "ratio : 1.0");
+      Log.d("+++1", "width: " + width + " height: " + height);
       Settings.getInstance().setHeight(height);
       Settings.getInstance().setWidth(width);
+      Settings.getInstance().setRatio(1.0);
       setMeasuredDimension(width, height);
     } else {
+      Log.d("+++", "===========");
+      Log.d("+++", "if (width > height * ratioWidth / ratioHeight) {");
+      Log.d("+++2", "width: " + width + " height: " + width * ratioHeight / ratioWidth);
+      Log.d("+++", "else");
+      Log.d("+++3", "width: " + height * ratioWidth / ratioHeight + " height: " + height);
+      Log.d("+++", "===========");
       if (width > height * ratioWidth / ratioHeight) {
-        Settings.getInstance().setWidth(width);
-        Settings.getInstance().setHeight(width * ratioHeight / ratioWidth);
+        Log.d("+++2", "ratioWidth: " + ratioWidth);
+        Log.d("+++2", "ratioHeight: " + ratioHeight);
+        Log.d("+++2", "width: " + width);
+        Log.d("+++2", "Height: " + height);
+        Log.d("+++2", "ration: " + ((double) width * ratioHeight / ratioWidth) / height);
+        Log.d("+++2", "width: " + width + " height: " + width * ratioHeight / ratioWidth);
+        Settings.getInstance()
+            .setWidth((double) ((double) width * ratioHeight / ratioWidth) / height);
+        Settings.getInstance().setHeight(height / (double) width);
+        Settings.getInstance().setRatio(width / (double) height);
         setMeasuredDimension(width, width * ratioHeight / ratioWidth);
       } else {
-        Settings.getInstance().setWidth(height * ratioWidth / ratioHeight);
-        Settings.getInstance().setHeight(height);
+        Log.d("+++3", "ratioWidth: " + ratioWidth);
+        Log.d("+++3", "ratioHeight: " + ratioHeight);
+        Log.d("+++3", "width: " + width);
+        Log.d("+++3", "Height: " + height);
+        Log.d("+++3", "ratio: " + (double) (height * ratioWidth / ratioHeight) / width);
+        Log.d("+++3", "width: " + height * ratioWidth / ratioHeight + " height: " + height);
+
+        Settings.getInstance().setWidth((double) (height * ratioWidth / ratioHeight) / width);
+        Settings.getInstance().setHeight(height / (double) width);
+
+        Settings.getInstance().setRatio(height / (double) width);
         setMeasuredDimension(height * ratioWidth / ratioHeight, height);
       }
     }

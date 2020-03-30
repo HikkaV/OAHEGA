@@ -86,7 +86,8 @@ public class PreferenceBottomSheetDialogFragment extends DialogFragment implemen
       LOGGER.d("on click: btn_change_camera");
       Settings.getInstance().setBeforChange(false);
       Settings.getInstance().setIsfront(!Settings.getInstance().isIsfront());
-      ((CameraActivity) getActivity()).setFragment();
+      getActivity().finish();
+      getActivity().startActivity(getActivity().getIntent());
       return;
     }
 
