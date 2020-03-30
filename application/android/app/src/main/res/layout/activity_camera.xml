@@ -52,4 +52,12 @@
       tools:context="org.tensorflow.demo.CameraActivity" />
   </RelativeLayout>
 
+  <ImageButton
+    android:id="@+id/camera_change_button"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="#00000000"
+    android:paddingBottom="10dp"
+    android:layout_gravity="center_horizontal|bottom"/>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

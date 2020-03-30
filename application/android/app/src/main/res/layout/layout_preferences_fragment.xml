@@ -167,13 +167,13 @@
     </LinearLayout>
   </RelativeLayout>
 
-  <Button
-    android:id="@+id/btn_change_camera"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_gravity="center"
-    android:text="change camera">
+<!--  <Button-->
+<!--    android:id="@+id/btn_change_camera"-->
+<!--    android:layout_width="wrap_content"-->
+<!--    android:layout_height="wrap_content"-->
+<!--    android:layout_gravity="center"-->
+<!--    android:text="change camera">-->
 
-  </Button>
+<!--  </Button>-->
 
 </LinearLayout>

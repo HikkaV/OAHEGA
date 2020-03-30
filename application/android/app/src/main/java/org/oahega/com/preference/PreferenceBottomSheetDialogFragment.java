@@ -33,7 +33,7 @@ public class PreferenceBottomSheetDialogFragment extends DialogFragment implemen
       @Nullable Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.layout_preferences_fragment, container);
 
-    view.findViewById(R.id.btn_change_camera).setOnClickListener(this);
+//    view.findViewById(R.id.btn_change_camera).setOnClickListener(this);
 
     view.findViewById(R.id.p_c_minus).setOnClickListener(this);
     percentsClassifTextView = view.findViewById(R.id.c_percents);
@@ -82,14 +82,14 @@ public class PreferenceBottomSheetDialogFragment extends DialogFragment implemen
       FragmentManager fm = getActivity().getSupportFragmentManager();
       dialogFragment.show(fm, "test");
     }
-    if (v.getId() == R.id.btn_change_camera) {
-      LOGGER.d("on click: btn_change_camera");
-      Settings.getInstance().setBeforChange(false);
-      Settings.getInstance().setIsfront(!Settings.getInstance().isIsfront());
-      getActivity().finish();
-      getActivity().startActivity(getActivity().getIntent());
-      return;
-    }
+//    if (v.getId() == R.id.btn_change_camera) {
+//      LOGGER.d("on click: btn_change_camera");
+//      Settings.getInstance().setBeforChange(false);
+//      Settings.getInstance().setIsfront(!Settings.getInstance().isIsfront());
+//      getActivity().finish();
+//      getActivity().startActivity(getActivity().getIntent());
+//      return;
+//    }
 
     if (v.getId() == R.id.p_c_plus) {
       LOGGER.d("on click: p_c_plus");
