@@ -52,6 +52,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.oahega.com.customview.OverlayView;
+import org.oahega.com.preference.Preference;
 import org.oahega.com.tflite.Recognition;
 import org.oahega.com.tflite.detection.Classifier;
 import org.oahega.com.tflite.detection.TFLiteObjectDetectionAPIModel;
@@ -303,7 +304,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 //            Log.d("===", "detects on " + inputBitmaps.indexOf(bitmap) + " is " + detects.size());
             ArrayList<Recognition> resultClassiofOnOneBitmap = new ArrayList<>();
             for (Recognition detect : detects) {
-                if (detect.getConfidence() * 100 > Settings.getInstance().getMinDetectionPercentToShow()) {
+                if (detect.getConfidence() * 100 > Preference.getInstance().getMinPercentDetect()) {
                     if ("face".equals(detect.getTitle())) {
 //                        Log.d("===", "new 1 " + detect.getTitle() + " : " + detect.getConfidence());
                         Matrix matrix = new Matrix();
@@ -317,7 +318,8 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                         Recognition bestClassif = getRec(classifs);
                         bestClassif.setLocation(detect.getLocation());
 //                        Log.d("===", "new 2" + bestClassif.getTitle() + " : " + getRec(classifs).getConfidence() * 100);
-                        if (bestClassif.getConfidence() * 100 > Settings.getInstance().getMinClassificationPercentToShow()) {
+                        if (bestClassif.getConfidence() * 100 > Preference.getInstance()
+                            .getMinPercentClassif()) {
                             resultClassiofOnOneBitmap.add(bestClassif);
                         }
                     } else {
@@ -541,7 +543,8 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         final Canvas canvas = new Canvas(croppedBitmap);
         canvas.drawBitmap(rgbFrameBitmap, frameToCropTransform, null);
         DataHelper.getInstance().getListOne().add(croppedBitmap);
-        if (DataHelper.getInstance().getListOne().size() >= Settings.getInstance().getNumOfAvarage() && DataHelper.getInstance().getListOne().size() > 0) {
+        if (DataHelper.getInstance().getListOne().size() >= Preference.getInstance().getAverage()
+            && DataHelper.getInstance().getListOne().size() > 0) {
             isProcessingFrame = true;
 
             runInBackground(

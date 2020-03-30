@@ -18,6 +18,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentManager;
 import org.oahega.com.CameraActivity;
+import org.oahega.com.MainApplication;
 import org.oahega.com.R;
 import org.oahega.com.env.Logger;
 import org.oahega.com.utils.Settings;
@@ -37,14 +38,17 @@ public class PreferenceBottomSheetDialogFragment extends DialogFragment implemen
 
     view.findViewById(R.id.p_c_minus).setOnClickListener(this);
     percentsClassifTextView = view.findViewById(R.id.c_percents);
+    percentsClassifTextView.setText(String.valueOf(Preference.getInstance().getMinPercentClassif()));
     view.findViewById(R.id.p_c_plus).setOnClickListener(this);
 
     view.findViewById(R.id.p_d_minus).setOnClickListener(this);
     percentsDetectionTextView = view.findViewById(R.id.d_percents);
+    percentsDetectionTextView.setText(String.valueOf(Preference.getInstance().getMinPercentDetect()));
     view.findViewById(R.id.p_d_plus).setOnClickListener(this);
 
     view.findViewById(R.id.avarage_minus).setOnClickListener(this);
     avarageTextView = view.findViewById(R.id.avarage_percents);
+    avarageTextView.setText(String.valueOf(Preference.getInstance().getAverage()));
     view.findViewById(R.id.avarage_plus).setOnClickListener(this);
 
     return view;
@@ -100,7 +104,7 @@ public class PreferenceBottomSheetDialogFragment extends DialogFragment implemen
       }
       percents += 1;
       percentsClassifTextView.setText(String.valueOf(percents));
-      Settings.getInstance().setMinClassificationPercentToShow(percents);
+      Preference.getInstance().setMinPercentClassif(percents);
     } else if (v.getId() == R.id.p_c_minus) {
       LOGGER.d("on click: p_c_minus");
       String percent = percentsClassifTextView.getText().toString().trim();
@@ -110,7 +114,7 @@ public class PreferenceBottomSheetDialogFragment extends DialogFragment implemen
       }
       percents -= 1;
       percentsClassifTextView.setText(String.valueOf(percents));
-      Settings.getInstance().setMinClassificationPercentToShow(percents);
+      Preference.getInstance().setMinPercentClassif(percents);
     }
     if (v.getId() == R.id.p_d_plus) {
       LOGGER.d("on click: p_d_plus");
@@ -121,7 +125,7 @@ public class PreferenceBottomSheetDialogFragment extends DialogFragment implemen
       }
       percents += 1;
       percentsDetectionTextView.setText(String.valueOf(percents));
-      Settings.getInstance().setMinDetectionPercentToShow(percents);
+      Preference.getInstance().setMinPercentDetect(percents);
     } else if (v.getId() == R.id.p_d_minus) {
       LOGGER.d("on click: p_d_minus");
       String percent = percentsDetectionTextView.getText().toString().trim();
@@ -131,7 +135,7 @@ public class PreferenceBottomSheetDialogFragment extends DialogFragment implemen
       }
       percents -= 1;
       percentsDetectionTextView.setText(String.valueOf(percents));
-      Settings.getInstance().setMinDetectionPercentToShow(percents);
+      Preference.getInstance().setMinPercentDetect(percents);
     }
     if (v.getId() == R.id.avarage_plus) {
       LOGGER.d("on click: avarage_plus");
@@ -142,17 +146,17 @@ public class PreferenceBottomSheetDialogFragment extends DialogFragment implemen
       }
       percents += 1;
       avarageTextView.setText(String.valueOf(percents));
-      Settings.getInstance().setNumOfAvarage(percents);
+      Preference.getInstance().setAverage(percents);
     } else if (v.getId() == R.id.avarage_minus) {
       LOGGER.d("on click: avarage_minus");
       String percent = avarageTextView.getText().toString().trim();
       int percents = Integer.parseInt(percent);
-      if (percents == 0) {
+      if (percents == 1) {
         return;
       }
       percents -= 1;
       avarageTextView.setText(String.valueOf(percents));
-      Settings.getInstance().setNumOfAvarage(percents);
+      Preference.getInstance().setAverage(percents);
     }
   }
 }

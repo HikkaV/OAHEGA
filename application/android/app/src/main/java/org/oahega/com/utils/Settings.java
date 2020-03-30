@@ -7,9 +7,6 @@ import android.util.DisplayMetrics;
 public class Settings {
 
     private static Settings settings;
-    private int minClassificationPercentToShow;
-    private int minDetectionPercentToShow;
-    private int numOfAvarage;
     private boolean isfront = false;
     private double width = 0;
     private double height = 0;
@@ -17,9 +14,6 @@ public class Settings {
     private boolean isBeforChange = true;
 
     private Settings(){
-        this.minClassificationPercentToShow = 70;
-        this.minDetectionPercentToShow = 70;
-        this.numOfAvarage = 1;
         isfront = false;
     }
 
@@ -46,36 +40,12 @@ public class Settings {
         return new Point(pxWidth, pxHeight);
     }
 
-    public int getMinClassificationPercentToShow() {
-        return minClassificationPercentToShow;
-    }
-
-    public void setMinClassificationPercentToShow(int minClassificationPercentToShow) {
-        this.minClassificationPercentToShow = minClassificationPercentToShow;
-    }
-
-    public int getMinDetectionPercentToShow() {
-        return minDetectionPercentToShow;
-    }
-
-    public void setMinDetectionPercentToShow(int minDetectionPercentToShow) {
-        this.minDetectionPercentToShow = minDetectionPercentToShow;
-    }
-
     public boolean isIsfront() {
         return isfront;
     }
 
     public void setIsfront(boolean isfront) {
         this.isfront = isfront;
-    }
-
-    public int getNumOfAvarage() {
-        return numOfAvarage;
-    }
-
-    public void setNumOfAvarage(int numOfAvarage) {
-        this.numOfAvarage = numOfAvarage;
     }
 
     public double getWidth() {
