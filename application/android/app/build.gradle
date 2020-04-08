@@ -5,6 +5,14 @@ apply plugin: 'com.google.gms.google-services'
 apply from: "$project.rootDir/tools/const.gradle"
 
 android {
+    signingConfigs {
+        release {
+            keyAlias = 'KEY'
+            storeFile file('C:\\Users\\Zheka\\StudioProjects\\OAHEGA\\application\\android\\app\\src\\main\\assets\\Oahega_key.jks')
+            storePassword 'Rfksajhysz'
+            keyPassword 'Rfksajhysz'
+        }
+    }
     compileSdkVersion 28
     buildToolsVersion '28.0.3'
     defaultConfig {
@@ -21,8 +29,11 @@ android {
             debuggable true
         }
         release {
-            minifyEnabled true
-//            shrinkResources true
+            project.archivesBaseName = "app_" + project.ext.gitVersionName
+            zipAlignEnabled true
+            minifyEnabled false
+            shrinkResources false
+            signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -68,5 +79,8 @@ dependencies {
     implementation 'com.squareup.retrofit2:converter-gson:2.4.0'
     implementation 'com.squareup.retrofit2:converter-scalars:2.3.0'
 
+
+    implementation 'com.google.firebase:firebase-inappmessaging-display:19.0.4'
+    implementation 'com.google.firebase:firebase-analytics:17.3.0'
 
 }
