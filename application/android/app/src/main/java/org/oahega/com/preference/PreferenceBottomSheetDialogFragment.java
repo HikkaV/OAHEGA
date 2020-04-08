@@ -11,17 +11,14 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.ImageView;
+import android.widget.CheckBox;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentManager;
-import org.oahega.com.CameraActivity;
-import org.oahega.com.MainApplication;
 import org.oahega.com.R;
 import org.oahega.com.env.Logger;
-import org.oahega.com.utils.Settings;
 
 public class PreferenceBottomSheetDialogFragment extends DialogFragment implements OnClickListener {
 
@@ -33,8 +30,6 @@ public class PreferenceBottomSheetDialogFragment extends DialogFragment implemen
   public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
       @Nullable Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.layout_preferences_fragment, container);
-
-//    view.findViewById(R.id.btn_change_camera).setOnClickListener(this);
 
     view.findViewById(R.id.p_c_minus).setOnClickListener(this);
     percentsClassifTextView = view.findViewById(R.id.c_percents);
@@ -51,9 +46,12 @@ public class PreferenceBottomSheetDialogFragment extends DialogFragment implemen
     avarageTextView.setText(String.valueOf(Preference.getInstance().getAverage()));
     view.findViewById(R.id.avarage_plus).setOnClickListener(this);
 
+    ((CheckBox) (view.findViewById(R.id.ch_b_analytics)))
+        .setChecked(Preference.getInstance().getIsAnalytiscEnable());
+    ((CheckBox) (view.findViewById(R.id.ch_b_analytics))).setOnCheckedChangeListener(
+        (buttonView, isChecked) -> Preference.getInstance().setIsAnalytiscEnable(isChecked));
+
     return view;
-
-
   }
 
 
@@ -86,14 +84,6 @@ public class PreferenceBottomSheetDialogFragment extends DialogFragment implemen
       FragmentManager fm = getActivity().getSupportFragmentManager();
       dialogFragment.show(fm, "test");
     }
-//    if (v.getId() == R.id.btn_change_camera) {
-//      LOGGER.d("on click: btn_change_camera");
-//      Settings.getInstance().setBeforChange(false);
-//      Settings.getInstance().setIsfront(!Settings.getInstance().isIsfront());
-//      getActivity().finish();
-//      getActivity().startActivity(getActivity().getIntent());
-//      return;
-//    }
 
     if (v.getId() == R.id.p_c_plus) {
       LOGGER.d("on click: p_c_plus");

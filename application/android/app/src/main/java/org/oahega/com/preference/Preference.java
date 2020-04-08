@@ -6,12 +6,13 @@ import android.util.Log;
 
 public class Preference {
 
-  private static final String TAG = "Preserence";
+  private static final String TAG = "Preference";
 
   private static final String PREF_NAME = "SETTINGS";
   public static final String KEY_MIN_PERCENT_CLASSIF = "KEY_MIN_PERCENT_CLASSIF";
   public static final String KEY_MIN_PERCENT_DETECT = "KEY_MIN_PERCENT_DETECT";
   private static final String KEY_AVERAGE = "KEY_AVERAGE";
+  private static final String KEY_ANALYTICS = "KEY_ANALYTICS";
 
   private static Preference sInstance;
 
@@ -60,12 +61,22 @@ public class Preference {
         .commit();
   }
   public int getAverage() {
-    return mPref.getInt(KEY_AVERAGE, 0);
+    return mPref.getInt(KEY_AVERAGE, 1);
   }
 
   public void setAverage(int average) {
     mPref.edit()
         .putInt(KEY_AVERAGE, average)
+        .commit();
+  }
+
+  public boolean getIsAnalytiscEnable() {
+    return mPref.getBoolean(KEY_ANALYTICS, false);
+  }
+
+  public void setIsAnalytiscEnable(boolean average) {
+    mPref.edit()
+        .putBoolean(KEY_ANALYTICS, average)
         .commit();
   }
 

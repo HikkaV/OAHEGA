@@ -53,14 +53,11 @@ public class ClassifierFloatMobileNet extends Classifier {
     // you can download this file from
     // see build.gradle for where to obtain this file. It should be auto
     // downloaded into assets.
-//    return "emotions_distiled.tflite";
     return "emotions_full.tflite";
-//    return "detect_emotions_full_qant.tflite";
   }
 
   @Override
   protected String getLabelPath() {
-//    return "emotions_distilled.txt";
     return "emotions_lables.txt";
   }
 

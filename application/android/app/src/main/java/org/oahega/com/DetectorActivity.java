@@ -46,7 +46,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -102,8 +101,6 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-
     }
 
     private void doTest() {
@@ -112,15 +109,12 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         long beginTime = System.currentTimeMillis();
         File file = new File("SD-карта/oahega photo/1");
         if (file != null) {
-//            Log.d("===", "list: " + Arrays.toString(file.listFiles()));
-//            Log.d("===", "list: " + file.listFiles().length);
             StringBuilder stringBuilder = new StringBuilder();
             for (int i = 0; i < file.listFiles().length; i += 1) {
                 File image = file.listFiles()[i];
                 try {
                     Bitmap bitmap =
                             BitmapFactory.decodeStream(new FileInputStream(image.toString()));
-//                    Log.d("===", image.toString());
                     ArrayList<Recognition> recognitions = classifier.recognizeImage(bitmap, 0);
                     Recognition r = getRec(recognitions);
                     String input = image.getName().split("_")[0];
@@ -298,15 +292,12 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         ArrayList<Bitmap> inputBitmaps = DataHelper.getInstance().getListOne();
         ArrayList<Recognition> outputs = new ArrayList<>();
         ArrayList<ArrayList<Recognition>> resultsForAvarageOnManyBitmaps = new ArrayList<>();
-//        Log.d("===", "start process " + inputBitmaps.size() + " inputs");
         for (Bitmap bitmap : inputBitmaps) {
             List<Recognition> detects = detectFaces(cropBitmapDetection(bitmap));
-//            Log.d("===", "detects on " + inputBitmaps.indexOf(bitmap) + " is " + detects.size());
             ArrayList<Recognition> resultClassiofOnOneBitmap = new ArrayList<>();
             for (Recognition detect : detects) {
                 if (detect.getConfidence() * 100 > Preference.getInstance().getMinPercentDetect()) {
                     if ("face".equals(detect.getTitle())) {
-//                        Log.d("===", "new 1 " + detect.getTitle() + " : " + detect.getConfidence());
                         Matrix matrix = new Matrix();
 
                         matrix.postRotate(sensorOrientation);
@@ -353,11 +344,8 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         }
       }
       for (Recognition recognition : outputs) {
-        Log.d("+++", "top before = " + recognition.getLocation().top + " left before:" + recognition.getLocation().left);
-        Log.d("+++", "double on: " + Settings.getInstance().getWidth());
         recognition.doubleValueWeight(Settings.getInstance().getWidth());
         recognition.doubleValueHeight(Settings.getInstance().getWidth());
-        Log.d("+++", "top after = " + recognition.getLocation().top + " left after:" + recognition.getLocation().left);
       }
 
         showResults(outputs, inputBitmaps.get(0));
@@ -403,12 +391,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
         final List<Recognition> mappedRecognitions =
                 new LinkedList<>();
-//        if (results.isEmpty()) {
-//            readyForNextImage();
-//            isProcessingFrame = false;
-//            DataHelper.getInstance().getListOne().clear();
-//            return;
-//        }
+
         for (final Recognition result : results) {
             final RectF location = result.getLocation();
             if (location != null) {

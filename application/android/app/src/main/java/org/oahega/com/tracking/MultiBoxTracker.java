@@ -30,9 +30,11 @@ import android.util.TypedValue;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import org.oahega.com.analytics.EventSender;
 import org.oahega.com.env.BorderedText;
 import org.oahega.com.env.ImageUtils;
 import org.oahega.com.env.Logger;
+import org.oahega.com.preference.Preference;
 import org.oahega.com.tflite.Recognition;
 
 /** A tracker that handles non-max suppression and matches existing objects to new detections. */
@@ -189,6 +191,9 @@ public class MultiBoxTracker {
     }
 
     for (final Pair<Float, Recognition> potential : rectsToTrack) {
+      if (Preference.getInstance().getIsAnalytiscEnable()) {
+        EventSender.getInstance().addEvent(potential.second);
+      }
       final TrackedRecognition trackedRecognition = new TrackedRecognition();
       trackedRecognition.detectionConfidence = potential.first;
       trackedRecognition.location = new RectF(potential.second.getLocation());

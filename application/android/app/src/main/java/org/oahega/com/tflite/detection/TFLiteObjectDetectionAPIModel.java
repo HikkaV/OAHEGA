@@ -20,7 +20,6 @@ import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.RectF;
 import android.os.Trace;
-import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;

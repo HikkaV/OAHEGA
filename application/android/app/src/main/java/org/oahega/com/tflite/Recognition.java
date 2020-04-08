@@ -1,6 +1,12 @@
 package org.oahega.com.tflite;
 
 import android.graphics.RectF;
+import android.provider.Settings;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import org.oahega.com.MainApplication;
 
 public class Recognition {
     /**
@@ -65,6 +71,23 @@ public class Recognition {
         location = new RectF(Math.round(location.left * value), location.top,
             Math.round(location.right * value), location.bottom);
     }
+
+    public String toGson() {
+
+        return "{ \"username\": \"" + Settings.System
+            .getString(MainApplication.getApplication().getContentResolver(),
+                Settings.Secure.ANDROID_ID) + "\",\n"
+            + "    \"emotion\": \"" + title + "\",\n"
+            + "    \"date\": \"" + getDate() + "\"}";
+
+    }
+
+    private String getDate() {
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
+        String date = dateFormat.format(new Date(System.currentTimeMillis()));
+        return date;
+    }
+
     @Override
     public String toString() {
         String resultString = "";
