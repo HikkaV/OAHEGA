@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "201083034022",
+    "firebase_url": "https://oahega-pr.firebaseio.com",
+    "project_id": "oahega-pr",
+    "storage_bucket": "oahega-pr.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:201083034022:android:1eca77dd74f0aff18fd767",
+        "android_client_info": {
+          "package_name": "org.oahega.com"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "201083034022-5mhqi28iu8vv3l7liqsdgao13tdchph1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDxTaLc1gZHOr8A141y-xuwdGJO1qCdhIs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "201083034022-5mhqi28iu8vv3l7liqsdgao13tdchph1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,215 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:id="@+id/layout_preferences_fragment"
+  android:layout_width="wrap_content"
+  android:layout_height="wrap_content"
+  android:layout_centerInParent="true"
+  android:layout_margin="10dp"
+  android:background="#00000000"
+  android:backgroundTintMode="screen"
+  android:foreground="#00000000"
+  android:orientation="vertical">
+
+  <RelativeLayout
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="10dp"
+    android:orientation="horizontal">
+
+    <TextView
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_alignParentStart="true"
+      android:layout_marginStart="1dp"
+      android:layout_marginTop="10dp"
+      android:layout_marginEnd="1dp"
+      android:layout_toStartOf="@+id/liner_min_percent"
+      android:maxLines="1"
+      tools:textColor="#000000"
+      android:text="Min Percernt clasif"
+      android:textColor="@android:color/white" />
+
+    <LinearLayout
+      android:id="@+id/liner_min_percent"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_alignParentEnd="true"
+      android:layout_alignParentRight="true"
+      android:layout_marginEnd="1dp"
+      android:background="#00000000"
+      android:gravity="center"
+      android:orientation="horizontal"
+      android:padding="4dp">
+
+      <ImageView
+        android:id="@+id/p_c_minus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_baseline_remove" />
+
+      <TextView
+        android:id="@+id/c_percents"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:text="70"
+        tools:textColor="#000000"
+        android:textColor="@android:color/white"
+        android:textSize="14sp" />
+
+      <ImageView
+        android:id="@+id/p_c_plus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_baseline_add" />
+    </LinearLayout>
+  </RelativeLayout>
+
+  <RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="10dp"
+    android:orientation="horizontal">
+
+    <TextView
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_alignParentStart="true"
+      android:layout_marginStart="1dp"
+      android:layout_marginTop="10dp"
+      android:layout_toStartOf="@+id/liner_min_percent_d"
+      android:text="Min Percernt detect"
+      tools:textColor="#000000"
+      android:textColor="@android:color/white" />
+
+    <LinearLayout
+      android:id="@+id/liner_min_percent_d"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_alignParentEnd="true"
+      android:layout_alignParentRight="true"
+      android:layout_marginEnd="1dp"
+      android:background="#00000000"
+      android:gravity="center"
+      android:orientation="horizontal"
+      android:padding="4dp">
+
+      <ImageView
+        android:id="@+id/p_d_minus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_baseline_remove" />
+
+      <TextView
+        android:id="@+id/d_percents"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:text="70"
+        android:textColor="@android:color/white"
+        tools:textColor="#000000"
+        android:textSize="14sp" />
+
+      <ImageView
+        android:id="@+id/p_d_plus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_baseline_add" />
+    </LinearLayout>
+  </RelativeLayout>
+
+  <RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="10dp"
+    android:orientation="horizontal">
+
+    <TextView
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_alignParentStart="true"
+      android:layout_marginStart="1dp"
+      android:layout_marginTop="10dp"
+      android:layout_toStartOf="@+id/liner_min_percent_a"
+      android:text="Average"
+      android:textColor="@android:color/white"
+      tools:textColor="#000000" />
+
+    <LinearLayout
+      android:id="@+id/liner_min_percent_a"
+
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_alignParentEnd="true"
+      android:layout_alignParentRight="true"
+      android:layout_marginEnd="1dp"
+      android:background="#00000000"
+      android:gravity="center"
+      android:orientation="horizontal"
+      android:padding="4dp">
+
+      <ImageView
+        android:id="@+id/avarage_minus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_baseline_remove" />
+      <TextView
+        android:id="@+id/avarage_percents"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:text="1"
+        android:textColor="@android:color/white"
+        tools:textColor="#000000"
+        android:textSize="14sp" />
+      <ImageView
+        android:id="@+id/avarage_plus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_baseline_add" />
+    </LinearLayout>
+  </RelativeLayout>
+
+  <RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="10dp"
+    android:orientation="horizontal">
+
+    <TextView
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_alignParentStart="true"
+      android:layout_marginStart="1dp"
+      android:layout_marginTop="10dp"
+      android:text="Send Analytics"
+      android:textColor="@android:color/white"
+      tools:textColor="#000000" />
+
+    <LinearLayout
+      android:id="@+id/liner_analytics"
+
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_alignParentEnd="true"
+      android:layout_alignParentRight="true"
+      android:layout_marginEnd="1dp"
+      android:background="#00000000"
+      android:gravity="center"
+      android:orientation="horizontal"
+      android:padding="4dp">
+      <CheckBox
+        android:id="@+id/ch_b_analytics"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="20dp"/>
+
+    </LinearLayout>
+  </RelativeLayout>
+
+</LinearLayout>
