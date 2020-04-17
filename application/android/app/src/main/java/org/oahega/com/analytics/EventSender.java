@@ -1,6 +1,7 @@
 package org.oahega.com.analytics;
 
 import androidx.annotation.NonNull;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -57,7 +58,12 @@ public class EventSender {
         .build();
     ServerApi serverApi = retrofit.create(ServerApi.class);
 
-    String gsontext = events.get(0).toGson();
+    String gsontext = "null";
+    try {
+      gsontext = events.get(0).toGson();
+    } catch (NoSuchAlgorithmException e) {
+      e.printStackTrace();
+    }
 
     Call<String> call = serverApi.sendSingle(gsontext, "Application/json");
     call.enqueue(new Callback<String>() {

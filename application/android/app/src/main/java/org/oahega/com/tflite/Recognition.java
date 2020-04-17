@@ -2,6 +2,10 @@ package org.oahega.com.tflite;
 
 import android.graphics.RectF;
 import android.provider.Settings;
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -72,11 +76,22 @@ public class Recognition {
             Math.round(location.right * value), location.bottom);
     }
 
-    public String toGson() {
-
-        return "{ \"username\": \"" + Settings.System
+    public String toGson() throws NoSuchAlgorithmException {
+        String userName = Settings.System
             .getString(MainApplication.getApplication().getContentResolver(),
-                Settings.Secure.ANDROID_ID) + "\",\n"
+                Settings.Secure.ANDROID_ID);
+        MessageDigest m = MessageDigest.getInstance("MD5");
+        m.reset();
+        m.update(userName.getBytes());
+        byte[] digest = m.digest();
+        BigInteger bigInt = new BigInteger(1, digest);
+        String hashtext = bigInt.toString(16);
+// Now we need to zero pad it if you actually want the full 32 chars.
+        while (hashtext.length() < 32) {
+            hashtext = "0" + hashtext;
+        }
+
+        return "{ \"username\": \"" + hashtext + "\",\n"
             + "    \"emotion\": \"" + title + "\",\n"
             + "    \"date\": \"" + getDate() + "\"}";
 
