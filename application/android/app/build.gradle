@@ -31,8 +31,8 @@ android {
         release {
             project.archivesBaseName = "app_" + project.ext.gitVersionName
             zipAlignEnabled true
-            minifyEnabled false
-            shrinkResources false
+            shrinkResources true
+            minifyEnabled true
             signingConfig signingConfigs.release
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
