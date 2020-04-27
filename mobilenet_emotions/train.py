@@ -12,7 +12,9 @@ from keras.callbacks import ReduceLROnPlateau
 from keras_preprocessing.image import ImageDataGenerator
 from sklearn.model_selection import StratifiedShuffleSplit
 from skopt import forest_minimize
-import  tensorflow as tf
+import tensorflow as tf
+
+tf.random.set_seed(1)
 
 class Train:
     def __init__(self, train_batches=40, valid=25, eval_batch=100, num_epochs=50, ):
@@ -148,7 +150,7 @@ class Train:
 
         else:
             params = defined_params
-        dump_param, self.epochs, self.train_batch, self.dev_batch, dropout, drop_global, eta, loss, representation, trainable, l2, beta_loss = \
+        dump_param, self.epochs, self.train_batch, self.dev_batch, dropout, drop_global, eta, trainable, l2, layers_to_add = \
             params['x']
         if classweights:
             from helper import create_class_weight
@@ -159,8 +161,8 @@ class Train:
             classweight = None
         print(params)
 
-        dn = DeepMN(self.classes, dropout=dropout, loss=loss, trainable=trainable, eta=eta, dropout_global=drop_global,
-                    net_type=representation, train_mode=True, l2_=l2, beta_loss=beta_loss)
+        dn = DeepMN(self.classes, dropout=dropout, trainable=trainable, eta=eta, dropout_global=drop_global,
+                    train_mode=True, l2_=l2)
         self.init_generators()
         self.model, _ = dn.create_model()
         reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=10, )
@@ -184,15 +186,16 @@ class Train:
         """
         keras.backend.clear_session()
         id_ = random.randint(random.randint(25, 601), random.randint(602, 888))
-        dump_param, self.epochs, self.train_batch, self.dev_batch, dropout, drop_global, eta, representation, trainable, l2, layer_params = params
+        dump_param, self.epochs, self.train_batch, self.dev_batch, dropout, drop_global, eta, trainable, l2, layers_to_add = \
+            params
         print(
             'dump_param : {} , epochs : {} , train batch : {}, valid batch : {} , dropout : {} , '
             'dropout_global : {} , '
-            'eta : {} , representation : {}, frozen layers : {}; l2 : {}, dense_layers : {}'
+            'eta : {} ,  frozen layers : {}; l2 : {}, dense_layers : {}'
 
                 .format(dump_param,
-                        self.epochs, self.train_batch, self.dev_batch, dropout, drop_global, eta, representation,
-                        trainable, l2, layer_params
+                        self.epochs, self.train_batch, self.dev_batch, dropout, drop_global, eta,
+                        trainable, l2, layers_to_add
                         ))
 
         self.init_generators()
@@ -205,7 +208,7 @@ class Train:
         dict_logs['dropout'] = dropout
         dict_logs['dropout_global'] = drop_global
         dict_logs['eta'] = eta
-        dict_logs['layers_toadd'] = layer_params
+        dict_logs['layers_toadd'] = layers_to_add
         dict_logs['dump_param'] = dump_param
         dict_logs['trainable_layers'] = trainable
         dict_logs['experiment_id'] = id_
@@ -227,7 +230,7 @@ class Train:
 
         dn = DeepMN(self.classes, dropout=dropout, trainable=trainable,
                     weights='imagenet', eta=eta,
-                    dropout_global=drop_global, net_type=representation, l2_=l2, )
+                    dropout_global=drop_global, l2_=l2, layer_params=layers_to_add)
         self.model, _ = dn.create_model()
 
         if classweights:
