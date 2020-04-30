@@ -44,9 +44,9 @@ def parse_args():
                         help='constant to scale age')
     parser.add_argument('--brightness_threshold', type=int, default=70,
                         help='if brightness threshold is < determined -> more brightness wil be added to input data')
-    parser.add_argument('--es_log', type=bool, default=True,
+    parser.add_argument('--es_log', type=int, default=1,
                         help='either to log emotions to kibana')
-    parser.add_argument('--recreate_index',type=bool,default=False,
+    parser.add_argument('--recreate_index',type=int,default=0,
                         help='either to recreate elastic index')
     args = parser.parse_args()
     return args
@@ -61,7 +61,8 @@ def load_models():
     model_emotions = load_model('distilled_model.h5', compile=False)
     return model, model_emotions
 
-
 def get_classes(args):
-    class_list = open(args.classes).read().strip().split('\n')
-    return class_list
+    with open(args.classes,'r') as f:
+        classes = f.read()
+    classes = [i for i in classes.split('\n') if i]
+    return classes

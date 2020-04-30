@@ -28,9 +28,8 @@ class ESLogger:
         if self.es.ping():
             print('Connected to elastic')
         else:
-            raise Exception
+            raise Exception("Couldn't connect to elastic")
         self.check_index()
-
 
     def load_log(self, logs):
         res = self.es.index(index=self.index, doc_type='_doc', body=logs)

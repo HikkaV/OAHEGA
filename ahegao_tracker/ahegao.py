@@ -8,8 +8,10 @@ class Ahegao:
             self.es_logger = ESLogger(host=host, port=port, index=index)
             self.user_name = ''.join(
                 np.random.choice(list(string.ascii_uppercase + string.digits + string.ascii_letters), size=20))
-        if self.args.recreate_index:
-            self.es_logger.recreate_index()
+            if self.args.recreate_index:
+                self.es_logger.recreate_index()
+        else:
+            self.es_logger = None
         self.graph = None
         if self.args.type_model == 'tensorflow':
             self.graph = self.read_tensorflow()
@@ -96,8 +98,9 @@ class Ahegao:
             prediction_ = 'sex : {0} age :{1} emotion: {2} {3}%'.format(i[2], i[1],
                                                                         i[0], i[4])
             timestamp = datetime.datetime.now().isoformat().split('.')[0]
-            self.es_logger.load_log(
-                {'username': self.user_name, 'emotion': i[0], 'date': timestamp})
+            if self.es_logger:
+                self.es_logger.load_log(
+                    {'username': self.user_name, 'emotion': i[0], 'date': timestamp})
             cv2.putText(self.frame, prediction_,
                         bottomLeftCornerOfText,
                         font,
